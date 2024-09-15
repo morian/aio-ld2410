@@ -1,0 +1,164 @@
+[build-system]
+requires = ['setuptools']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'aio_ld2410'
+dynamic = ['version']
+authors = [
+	{name = 'Romain Bezut', email = 'morian@xdec.net'},
+]
+description = 'Asynchonous library for the HiLink LD2410 presence detector module'
+readme = 'README.md'
+classifiers = [
+	'Intended Audience :: Developers',
+	'Intended Audience :: Information Technology',
+	'License :: OSI Approved :: MIT License',
+	'Programming Language :: Python',
+	'Programming Language :: Python :: 3',
+	'Programming Language :: Python :: 3 :: Only',
+	'Programming Language :: Python :: 3.10',
+	'Programming Language :: Python :: 3.11',
+	'Programming Language :: Python :: 3.12',
+	'Topic :: Software Development :: Libraries :: Python Modules',
+]
+dependencies = [
+	'pyserial-asyncio-fast >= 0.14, < 1.0',
+]
+requires-python = '>=3.10'
+
+[tool.setuptools.packages.find]
+include = [
+	'aio_ld2410',
+]
+
+[tool.setuptools.dynamic]
+version = {attr = 'aio_ld2410.version.version'}
+
+[tool.setuptools.package-data]
+'*' = ['py.typed']
+
+[tool.coverage.run]
+source = ['aio_ld2410']
+branch = true
+
+[tool.coverage.report]
+precision = 2
+exclude_lines = [
+	'pragma: no cover',
+	'raise NotImplementedError',
+	'if TYPE_CHECKING:',
+	'@overload',
+	'[.][.][.]',
+]
+
+[tool.coverage.paths]
+source = [
+	'aio_ld2410/',
+]
+
+[tool.pytest.ini_options]
+addopts = "--cov=aio_ld2410"
+asyncio_default_fixture_loop_scope = 'function'
+asyncio_mode = 'strict'
+testpaths = ['tests']
+
+[tool.ruff]
+include = ['aio_ld2410/*.py', 'tests/*.py']
+indent-width = 4
+line-length = 95
+output-format = 'grouped'
+
+[tool.ruff.format]
+indent-style = 'space'
+line-ending = 'lf'
+quote-style = 'single'
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+select = [
+	'A',      # flake8-builtins
+	'ASYNC',  # flake8-async
+	'B',      # flake8-bugbear
+	'C4',     # flake8-comprehensions
+	'C90',    # mccabe
+	'COM',    # flake8-commas
+	'D',      # pydocstyle
+	'DTZ',    # flake8-datetimez
+	'E',      # pycodestyle errors
+	'F',      # Pyflakes
+	'FA',     # flake8-future-annotations
+	'I',      # isort
+	'LOG',    # flake8-logging
+	'N',      # pep8-naming
+	'PIE',    # flake8-pie
+	'PT',     # flake8-pytest-style
+	'PYI',    # flake8-pyi
+	'Q',      # flake8-quotes
+	'RET',    # flake8-return
+	'RSE',    # flake8-raise
+	'RUF',    # Ruff-specific rules
+	'S',      # flake8-bandit
+	'SIM',    # flake8-simplify
+	'SLF',    # flake8-self
+	'TCH',    # flake8-type-checking
+	'UP',     # pyupgrade
+	'W',      # pycodestyle warnings
+]
+ignore = [
+	'A003',   # Class attribute is shadowing a python builtin
+	'COM812', # missing-trailing-comma
+	'D100',   # Missing docstring in public module
+	'D104',   # Missing docstring in public package
+	'D203',   # 1 blank line required before class docstring
+	'D213',   # Multi-line docstring summary should start at the second line
+]
+
+[tool.ruff.lint.isort]
+case-sensitive = true
+combine-as-imports = true
+detect-same-package = false
+known-first-party = ['aio_ld2410']
+force-wrap-aliases = true
+split-on-trailing-comma = false
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = 'double'
+inline-quotes = 'single'
+multiline-quotes = 'double'
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12
+
+[tool.ruff.lint.per-file-ignores]
+'tests/*.py' = [
+	'D',      # pydocstyle
+	'RUF012', # mutable-class-default
+	'S101',   # bandit: Use of `assert` detected
+]
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = ['pydantic.BaseModel']
+
+[tool.mypy]
+files = ['aio_ld2410/*.py']
+#plugins = ['pydantic.mypy']
+python_version = '3.10'
+namespace_packages = true
+explicit_package_bases = true
+local_partial_types = true
+show_error_codes = true
+follow_imports = 'silent'
+strict_optional = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unused_ignores = false
+disallow_any_generics = true
+check_untyped_defs = true
+no_implicit_reexport = true
+warn_unused_configs = true
+disallow_subclassing_any = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
