@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import IntEnum
+from typing import TYPE_CHECKING
 
 from construct import (
     Array,
@@ -18,7 +19,9 @@ from construct import (
     Struct,
     Switch,
 )
-from typing_extensions import Self
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 
 class CommandCode(IntEnum):
@@ -44,6 +47,19 @@ class CommandCode(IntEnum):
     DISTANCE_RESOLUTION_SET = 0xAA
     DISTANCE_RESOLUTION_GET = 0xAB
 
+    # The following replies are available on FW v2.4 and later.
+    # https://github.com/esphome/feature-requests/issues/2156#issuecomment-1472962509
+    AUXILIARY_CONTROL_SET = 0xAD
+    AUXILIARY_CONTROL_GET = 0xAE
+
+
+class AuxiliaryControl(IntEnum):
+    """Possible values for auxiliary control."""
+
+    DISABLED = 0
+    UNDER_THRESHOLD = 1
+    ABOVE_THRESHOLD = 2
+
 
 class BaudRateIndex(IntEnum):
     """List of available baud rates."""
@@ -64,6 +80,13 @@ class BaudRateIndex(IntEnum):
         Raises a KeyError when the provided rate cannot be used.
         """
         return cls[f'RATE_{rate}']
+
+
+class OutPinLevel(IntEnum):
+    """Tell the default status of the OUT pin."""
+
+    LOW = 0
+    HIGH = 1
 
 
 class ReplyStatus(IntEnum):
@@ -128,6 +151,12 @@ _CommandSwitch = Switch(
             'resolution' / Enum(Int16ul, ResolutionIndex),
         ),
         CommandCode.DISTANCE_RESOLUTION_GET.name: Pass,
+        CommandCode.AUXILIARY_CONTROL_SET.name: Struct(
+            'control' / Enum(Byte, AuxiliaryControl),
+            'threshold' / Byte,  # From 0 to 255
+            'default' / Enum(Int16ul, OutPinLevel),
+        ),
+        CommandCode.AUXILIARY_CONTROL_GET.name: Pass,
     },
     Error,
 )
@@ -182,6 +211,15 @@ _ReplySwitch = Switch(
         CommandCode.DISTANCE_RESOLUTION_SET.name: Pass,
         CommandCode.DISTANCE_RESOLUTION_GET.name: Struct(
             'resolution' / Enum(Int16ul, ResolutionIndex),
+        ),
+
+        # The following replies are available on FW v2.4 and later.
+        # It seems to be related to the OUT pin behavior.
+        CommandCode.AUXILIARY_CONTROL_SET.name: Pass,
+        CommandCode.AUXILIARY_CONTROL_GET.name: Struct(
+            'control' / Enum(Byte, AuxiliaryControl),
+            'threshold' / Byte,  # From 0 to 255
+            'default' / Enum(Int16ul, OutPinLevel),
         ),
     },
     Error,

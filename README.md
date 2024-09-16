@@ -9,3 +9,5 @@ Here is a list of documents used to design the protocol:
 - LD2410C Serial communication protocol V1.00.pdf
 
 Those can be found online on [Hi-Link Website](https://www.hlktech.net/index.php?id=1095).
+Auxiliary control documentation comes from the following post:
+- https://github.com/esphome/feature-requests/issues/2156#issuecomment-1472962509

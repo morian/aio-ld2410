@@ -1,5 +1,6 @@
 from .command import BaudRateIndex, Command, CommandCode, Reply, ReplyStatus, ResolutionIndex
 from .frame import CommandFrame, Frame, FrameType, ReportFrame
+from .ld2410 import LD2410
 from .report import Report, ReportType
 from .version import version
 
@@ -11,6 +12,7 @@ __all__ = [
     'CommandFrame',
     'Frame',
     'FrameType',
+    'LD2410',
     'Reply',
     'ReplyStatus',
     'Report',

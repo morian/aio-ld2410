@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from enum import IntEnum
 
-from construct import Array, Byte, Bytes, Const, Enum, FlagsEnum, If, Int16ul, Struct
+from construct import Array, Byte, Const, Enum, FlagsEnum, If, Int16ul, Struct
+
+from .command import OutPinLevel
 
 
 class ReportType(IntEnum):
@@ -24,9 +26,10 @@ _ReportBasic = Struct(
 _ReportEngineering = Struct(
     'motion_max_distance_gate' / Byte,  # Gate number
     'standstill_max_distance_gate' / Byte,  # Gate number
-    'motion_gate_energy' / Array(8, Byte),  # motion energy per-gate (percent)
-    'standstill_gate_energy' / Array(8, Byte),  # standstill energy per-gate (percent)
-    'retain_data' / Bytes(4),  # Length and what it contains isn't clear here
+    'motion_gate_energy' / Array(9, Byte),  # motion energy per-gate (percent)
+    'standstill_gate_energy' / Array(9, Byte),  # standstill energy per-gate (percent)
+    'photosensitive_value' / Byte,  # From 0 to 255
+    'out_pin_status' / Enum(Byte, OutPinLevel),
 )
 
 _ReportEngineeringOrNone = If(
