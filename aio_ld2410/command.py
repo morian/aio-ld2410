@@ -3,10 +3,14 @@ from __future__ import annotations
 from enum import IntEnum
 
 from construct import (
+    Array,
+    Byte,
+    Bytes,
     Const,
     Enum,
     Error,
     FlagsEnum,
+    Hex,
     Int16ul,
     Int32ul,
     PaddedString,
@@ -60,6 +64,13 @@ class BaudRateIndex(IntEnum):
         Raises a KeyError when the provided rate cannot be used.
         """
         return cls[f'RATE_{rate}']
+
+
+class ReplyStatus(IntEnum):
+    """Command ACK status."""
+
+    SUCCESS = 0
+    FAILURE = 1
 
 
 class ResolutionIndex(IntEnum):
@@ -123,6 +134,63 @@ _CommandSwitch = Switch(
 
 
 Command = Struct(
-    'code' / Enum(Int16ul, CommandCode),
+    'code' / Enum(Byte, CommandCode),
+    Const(0, Byte),
     'data' / _CommandSwitch,
+)
+
+
+_ReplySwitch = Switch(
+    lambda this: this.code,
+    {
+        CommandCode.PARAMETERS_WRITE.name: Pass,
+        CommandCode.PARAMETERS_READ.name: Struct(
+            Const(0xAA, Byte),  # Header
+            'max_distance_gate' / Byte,  # The furthest gate this chip can handle (0x08)
+            'motion_max_distance_gate' / Byte,  # Configured max motion gate
+            'standstill_max_distance_gate' / Byte,  # Configured max standstill gate
+            'motion_sensitivity' / Array(9, Byte),  # percent
+            'standstill_sensitivity' / Array(9, Byte),  # percent
+            'no_one_idle_duration' / Int16ul,  # Range 0-65535 (seconds)
+        ),
+        CommandCode.ENGINEERING_ENABLE.name: Pass,
+        CommandCode.ENGINEERING_DISABLE.name: Pass,
+        CommandCode.GATE_SENSITIVITY_SET.name: Pass,
+        # Documentation says major = what we call here major.minor
+        # Note that revision seems to always be displayed in hex.
+        CommandCode.FIRMWARE_VERSION.name: Struct(
+            'type' / Int16ul,
+            'minor' / Byte,
+            'major' / Byte,
+            'revision' / Hex(Int32ul),
+        ),
+        CommandCode.BAUD_RATE_SET.name: Pass,
+        CommandCode.FACTORY_RESET.name: Pass,
+        CommandCode.MODULE_RESTART.name: Pass,
+        CommandCode.BLUETOOTH_SET.name: Pass,
+        CommandCode.BLUETOOTH_MAC_GET.name: Struct(
+            'address' / Hex(Bytes(6)),
+        ),
+        CommandCode.CONFIG_DISABLE.name: Pass,
+        CommandCode.CONFIG_ENABLE.name: Struct(
+            'protocol_version' / Int16ul,
+            'buffer_size' / Int16ul,
+        ),
+        ## The following replies can only be received on LD2410C.
+        CommandCode.BLUETOOTH_AUTHENTICATE.name: Pass,
+        CommandCode.BLUETOOTH_PASSWORD_SET.name: Pass,
+        CommandCode.DISTANCE_RESOLUTION_SET.name: Pass,
+        CommandCode.DISTANCE_RESOLUTION_GET.name: Struct(
+            'resolution' / Enum(Int16ul, ResolutionIndex),
+        ),
+    },
+    Error,
+)
+
+Reply = Struct(
+    'code' / Enum(Byte, CommandCode),
+    Const(1, Byte),
+    # All commands have a status, therefore it is put in common here.
+    'status' / Enum(Int16ul, ReplyStatus),
+    'data' / _ReplySwitch,
 )

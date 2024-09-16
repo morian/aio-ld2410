@@ -3,7 +3,7 @@ import pytest
 from aio_ld2410 import Report, ReportFrame, ReportType
 
 _TRACES = {
-    ReportType.BASIC: 'f4 f3 f2 f10d 0002 aa 02 51 00 00 00 00 3b 00 00 55 00f8 f7 f6 f5',
+    ReportType.BASIC: 'f4 f3 f2 f1 0d 00 02 aa 02 51 00 00 00 00 3b 00 00 55 00 f8 f7 f6 f5',
     ReportType.ENGINEERING: (
         'f4 f3 f2 f1 23 00 01 aa 03 1e 00 3c 00 00 39 00'
         '00 08 08 3c 22 05 03 03 04 03 06 05 00 00 39 10'
