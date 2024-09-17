@@ -8,7 +8,8 @@ from .command import (
     ReplyStatus,
     ResolutionIndex,
 )
-from .exception import AioLd2410Error, CommandError, ConnectError
+from .dataclass import ConfigModeStatus, ParametersConfig, ParametersStatus
+from .exception import AioLd2410Error, CommandError, CommandStatusError, ConnectError
 from .frame import CommandFrame, Frame, FrameType, ReportFrame
 from .ld2410 import LD2410
 from .report import Report, ReportType
@@ -23,11 +24,15 @@ __all__ = [
     'CommandCode',
     'CommandError',
     'CommandFrame',
+    'CommandStatusError',
+    'ConfigModeStatus',
     'ConnectError',
     'Frame',
     'FrameType',
     'LD2410',
     'OutPinLevel',
+    'ParametersConfig',
+    'ParametersStatus',
     'Reply',
     'ReplyStatus',
     'Report',

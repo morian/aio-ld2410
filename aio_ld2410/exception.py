@@ -7,4 +7,8 @@ class ConnectError(AioLd2410Error):
 
 
 class CommandError(AioLd2410Error):
-    """An error that occurred after a command was sent."""
+    """An error raised after a command was sent."""
+
+
+class CommandStatusError(CommandError):
+    """An error raised after a failure status was received."""

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from asyncio import StreamReader, StreamWriter
 from contextlib import AsyncExitStack, asynccontextmanager, suppress
 from typing import TYPE_CHECKING, Any, Optional, cast
 
@@ -9,15 +10,21 @@ from construct import Container
 from serial_asyncio_fast import open_serial_connection
 
 from .command import Command, CommandCode, Reply, ReplyStatus
-from .exception import CommandError, ConnectError
+from .dataclass import (
+    ConfigModeStatus,
+    ParametersConfig,
+    ParametersStatus,
+    container_to_dataclass,
+)
+from .exception import CommandError, CommandStatusError, ConnectError
 from .frame import CommandFrame, Frame, FrameType
 from .report import Report
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import AsyncIterator, Mapping
     from types import TracebackType
 
-    from typing_extensions import Self, TypeAlias
+    from typing_extensions import Self, TypeAlias, Unpack
 
 
 _ReplyType: TypeAlias = Container[Any]
@@ -40,12 +47,18 @@ class LD2410:
         self._baudrate = baudrate
         self._device = device
         self._read_bufsize = read_bufsize
+        self._config_lock = asyncio.Lock()
         self._request_lock = asyncio.Lock()
         self._connected = False
         self._context = None  # type: AsyncExitStack | None
         self._replies = None  # type: asyncio.Queue[_ReplyType | None] | None
         self._rdtask = None  # type: asyncio.Task[None] | None
-        self._writer = None  # type: asyncio.StreamWriter | None
+        self._writer = None  # type: StreamWriter | None
+
+    @property
+    def configuring(self) -> bool:
+        """Tell whether configuration mode is currently entered."""
+        return self._config_lock.locked()
 
     @property
     def connected(self) -> bool:
@@ -64,11 +77,7 @@ class LD2410:
 
         context = await AsyncExitStack().__aenter__()
         try:
-            reader, writer = await open_serial_connection(
-                baudrate=self._baudrate,
-                limit=self._read_bufsize,
-                url=self._device,
-            )
+            reader, writer = await self._open_serial_connection()
             context.push_async_callback(writer.wait_closed)
             context.callback(writer.close)
 
@@ -115,9 +124,17 @@ class LD2410:
         # Do not prevent the original exception from going further.
         return False
 
+    async def _open_serial_connection(self) -> tuple[StreamReader, StreamWriter]:
+        """Open a serial connection for this device."""
+        return await open_serial_connection(
+            baudrate=self._baudrate,
+            limit=self._read_bufsize,
+            url=self._device,
+        )
+
     async def _reader_task(
         self,
-        reader: asyncio.StreamReader,
+        reader: StreamReader,
         replies: asyncio.Queue[_ReplyType | None],
     ) -> None:
         try:
@@ -129,10 +146,12 @@ class LD2410:
                         await replies.put(reply)
                         print(reply)
                     elif frame.type == FrameType.REPORT:
-                        report = Report.parse(frame.data)
-                        # await replies.put(report)
-                        # TODO: find a way to provide these reports appropriately.
-                        print(report)
+                        Report.parse(frame.data)
+                        # report = Report.parse(frame.data)
+                        # TODO: Handle reports
+                        # - Transform this report into a dataclass
+                        # - Use an asyncio.Condition() to notify when a new status is received.
+                        # print(report)
                 except Exception:
                     logger.warning('Unable to parse frame: %s', chunk.hex(' '))
         finally:
@@ -144,27 +163,33 @@ class LD2410:
     def _raise_for_status(self, reply: _ReplyType) -> None:
         """Raise when the reply status is unsuccessful."""
         if int(reply.status) != ReplyStatus.SUCCESS:
-            raise CommandError(f'Command {reply.code} returned a bad status: {reply.status}')
+            raise CommandStatusError(
+                f'Command {reply.code} returned a bad status: {reply.status}'
+            )
 
     def _warn_for_status(self, reply: _ReplyType) -> None:
         """Warn on logger when the reply status is unsuccessful."""
         if int(reply.status) != ReplyStatus.SUCCESS:
             logger.warning('Command %s returned a bad status: %u', reply.code, reply.status)
 
-    async def _request(self, code: CommandCode, **kwargs: Any) -> _ReplyType:
+    async def _request(
+        self,
+        code: CommandCode,
+        args: Mapping[str, Any] | None = None,
+    ) -> _ReplyType:
         """Send any kind of command to the device.
 
         Wait and dequeue the corresponding reply.
         """
-        command = Command.build({'code': code, 'data': kwargs or None})
+        command = Command.build({'code': code, 'data': args})
         async with self._request_lock:
             if not self.connected:
                 raise ConnectError('We are not connected to the device anymore!')
 
             frame = CommandFrame.build({'data': command})
-            # Casts are valid here since we check `self.connected`.
+            # Casts are valid here since we just checked `self.connected`.
             replies = cast(asyncio.Queue[Optional[_ReplyType]], self._replies)
-            writer = cast(asyncio.StreamWriter, self._writer)
+            writer = cast(StreamWriter, self._writer)
 
             writer.write(frame)
             await writer.drain()
@@ -185,14 +210,42 @@ class LD2410:
         return cast(_ReplyType, reply)
 
     @asynccontextmanager
-    async def configure(self) -> AsyncIterator[None]:
+    async def configure(self) -> AsyncIterator[ConfigModeStatus]:
         """Enter configuration mode."""
-        resp = await self._request(CommandCode.CONFIG_ENABLE)
+        async with self._config_lock:
+            resp = await self._request(CommandCode.CONFIG_ENABLE)
+            self._raise_for_status(resp)
+
+            try:
+                yield container_to_dataclass(ConfigModeStatus, resp.data)
+            finally:
+                resp = await self._request(CommandCode.CONFIG_DISABLE)
+                self._warn_for_status(resp)
+
+    async def set_engineering_mode(self, enabled: bool) -> None:
+        """Set device in engineering mode (requires configuration mode)."""
+        if not self.configuring:
+            raise CommandError('This command requires a configuration context')
+
+        code = CommandCode.ENGINEERING_ENABLE if enabled else CommandCode.ENGINEERING_DISABLE
+        resp = await self._request(code)
         self._raise_for_status(resp)
-        # TODO: set a _configurable flag or structure while we are here.
-        try:
-            # TODO: return a dataclass with configuration info (protocol_version, buffer_size).
-            yield
-        finally:
-            resp = await self._request(CommandCode.CONFIG_DISABLE)
-            self._warn_for_status(resp)
+
+    async def get_parameters(self) -> ParametersStatus:
+        """Read general parameters (requires configuration mode)."""
+        if not self.configuring:
+            raise CommandError('This command requires a configuration context')
+
+        resp = await self._request(CommandCode.PARAMETERS_READ)
+        self._raise_for_status(resp)
+        return container_to_dataclass(ParametersStatus, resp.data)
+
+    async def set_parameters(self, **kwargs: Unpack[ParametersConfig]) -> None:
+        """Set general parameters (requires configuration mode)."""
+        if not self.configuring:
+            raise CommandError('This command requires a configuration context')
+
+        # This step is needed to ensure argument correctness.
+        params = ParametersConfig(**kwargs)
+        resp = await self._request(CommandCode.PARAMETERS_WRITE, params)
+        self._raise_for_status(resp)
