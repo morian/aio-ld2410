@@ -32,6 +32,14 @@ class ParametersStatus(ParametersConfig):
     standstill_sensitivity: list[int]
 
 
+class GateSensitivityConfig(TypedDict):
+    """Get current sensitivity values."""
+
+    distance_gate: int  # 0 to 8, can be 0xFFFF for broadcast
+    motion_sensitivity: int
+    standstill_sensitivity: int
+
+
 def _filter_out_private(pair: tuple[str, Any]) -> bool:
     key, _ = pair
     return bool(not key.startswith('_'))

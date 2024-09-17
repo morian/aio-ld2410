@@ -4,13 +4,19 @@ import asyncio
 import logging
 from asyncio import StreamReader, StreamWriter
 from contextlib import AsyncExitStack, asynccontextmanager, suppress
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, cast
 
 from construct import Container
 from serial_asyncio_fast import open_serial_connection
 
 from .exception import CommandError, CommandStatusError, ConnectError
-from .models import ConfigModeStatus, ParametersConfig, ParametersStatus, container_to_model
+from .models import (
+    ConfigModeStatus,
+    GateSensitivityConfig,
+    ParametersConfig,
+    ParametersStatus,
+    container_to_model,
+)
 from .protocol import (
     Command,
     CommandCode,
@@ -23,14 +29,35 @@ from .protocol import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Mapping
+    from collections.abc import AsyncIterator, Awaitable, Mapping
     from types import TracebackType
 
-    from typing_extensions import Self, TypeAlias, Unpack
+    from typing_extensions import Concatenate, ParamSpec, Self, TypeAlias, Unpack
 
+    _P = ParamSpec('_P')
+    _T = TypeVar('_T')
 
 _ReplyType: TypeAlias = Container[Any]
 logger = logging.getLogger(__package__)
+
+
+def configuration(
+    func: Callable[Concatenate[LD2410, _P], Awaitable[_T]],
+) -> Callable[Concatenate[LD2410, _P], Awaitable[_T]]:
+    """Decorate an async method so we can check for the configuration context."""
+    if not asyncio.iscoroutinefunction(func):
+        raise RuntimeError('@configuration decorator is only suitable for async methods.')
+
+    async def _check_config_context(
+        self: LD2410,
+        *args: _P.args,
+        **kwargs: _P.kwargs,
+    ) -> _T:
+        if not self.configuring:
+            raise CommandError('This method requires a configuration context')
+        return await func(self, *args, **kwargs)
+
+    return _check_config_context
 
 
 class LD2410:
@@ -224,30 +251,31 @@ class LD2410:
                 resp = await self._request(CommandCode.CONFIG_DISABLE)
                 self._warn_for_status(resp)
 
+    @configuration
     async def set_engineering_mode(self, enabled: bool) -> None:
         """Set device in engineering mode (requires configuration mode)."""
-        if not self.configuring:
-            raise CommandError('This command requires a configuration context')
-
         code = CommandCode.ENGINEERING_ENABLE if enabled else CommandCode.ENGINEERING_DISABLE
         resp = await self._request(code)
         self._raise_for_status(resp)
 
+    @configuration
     async def get_parameters(self) -> ParametersStatus:
         """Read general parameters (requires configuration mode)."""
-        if not self.configuring:
-            raise CommandError('This command requires a configuration context')
-
         resp = await self._request(CommandCode.PARAMETERS_READ)
         self._raise_for_status(resp)
         return container_to_model(ParametersStatus, resp.data)
 
+    @configuration
     async def set_parameters(self, **kwargs: Unpack[ParametersConfig]) -> None:
         """Set general parameters (requires configuration mode)."""
-        if not self.configuring:
-            raise CommandError('This command requires a configuration context')
-
         # This step is needed to ensure argument correctness.
         params = ParametersConfig(**kwargs)
         resp = await self._request(CommandCode.PARAMETERS_WRITE, params)
+        self._raise_for_status(resp)
+
+    @configuration
+    async def set_gate_sentivity(self, **kwargs: Unpack[GateSensitivityConfig]) -> None:
+        """Set the sensor sensitivity."""
+        params = GateSensitivityConfig(**kwargs)
+        resp = await self._request(CommandCode.GATE_SENSITIVITY_SET, params)
         self._raise_for_status(resp)
