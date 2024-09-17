@@ -36,7 +36,7 @@ def _filter_out_private(pair: tuple[str, Any]) -> bool:
     return bool(not key.startswith('_'))
 
 
-def container_to_dataclass(cls: type[_T], data: Container[Any]) -> _T:
+def container_to_model(cls: type[_T], data: Container[Any]) -> _T:
     """Map the provided container to a dataclass."""
     # TODO: maybe we have an issue here with nested containers.
     d = dict(filter(_filter_out_private, data.items()))

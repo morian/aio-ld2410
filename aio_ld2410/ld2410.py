@@ -9,16 +9,18 @@ from typing import TYPE_CHECKING, Any, Optional, cast
 from construct import Container
 from serial_asyncio_fast import open_serial_connection
 
-from .command import Command, CommandCode, Reply, ReplyStatus
-from .dataclass import (
-    ConfigModeStatus,
-    ParametersConfig,
-    ParametersStatus,
-    container_to_dataclass,
-)
 from .exception import CommandError, CommandStatusError, ConnectError
-from .frame import CommandFrame, Frame, FrameType
-from .report import Report
+from .models import ConfigModeStatus, ParametersConfig, ParametersStatus, container_to_model
+from .protocol import (
+    Command,
+    CommandCode,
+    CommandFrame,
+    Frame,
+    FrameType,
+    Reply,
+    ReplyStatus,
+    Report,
+)
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Mapping
@@ -217,7 +219,7 @@ class LD2410:
             self._raise_for_status(resp)
 
             try:
-                yield container_to_dataclass(ConfigModeStatus, resp.data)
+                yield container_to_model(ConfigModeStatus, resp.data)
             finally:
                 resp = await self._request(CommandCode.CONFIG_DISABLE)
                 self._warn_for_status(resp)
@@ -238,7 +240,7 @@ class LD2410:
 
         resp = await self._request(CommandCode.PARAMETERS_READ)
         self._raise_for_status(resp)
-        return container_to_dataclass(ParametersStatus, resp.data)
+        return container_to_model(ParametersStatus, resp.data)
 
     async def set_parameters(self, **kwargs: Unpack[ParametersConfig]) -> None:
         """Set general parameters (requires configuration mode)."""

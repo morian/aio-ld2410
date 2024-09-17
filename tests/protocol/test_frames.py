@@ -1,7 +1,7 @@
 import pytest
 from construct import ConstError
 
-from aio_ld2410 import Frame, FrameType
+from aio_ld2410.protocol import Frame, FrameType
 
 
 @pytest.mark.parametrize(

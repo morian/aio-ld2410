@@ -1,6 +1,6 @@
 import pytest
 
-from aio_ld2410 import Report, ReportFrame, ReportType
+from aio_ld2410.protocol import Report, ReportFrame, ReportType
 
 _TRACES = {
     ReportType.BASIC: 'f4 f3 f2 f1 0d 00 02 aa 02 51 00 00 00 00 3b 00 00 55 00 f8 f7 f6 f5',

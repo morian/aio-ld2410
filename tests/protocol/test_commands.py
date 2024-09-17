@@ -1,6 +1,6 @@
 import pytest
 
-from aio_ld2410 import BaudRateIndex, Command, CommandCode, CommandFrame, Reply
+from aio_ld2410.protocol import BaudRateIndex, Command, CommandCode, CommandFrame, Reply
 
 _COMMAND_TRACES = {
     CommandCode.PARAMETERS_WRITE: (
