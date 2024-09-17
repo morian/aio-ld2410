@@ -26,6 +26,7 @@ classifiers = [
 	'Topic :: Terminals :: Serial',
 ]
 dependencies = [
+	'async-timeout >= 4; python_version < "3.11"',
 	'construct >= 2.10, < 3.0',
 	'pyserial-asyncio-fast >= 0.14, < 1.0',
 ]

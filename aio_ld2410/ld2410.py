@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import sys
 from asyncio import StreamReader, StreamWriter
 from contextlib import AsyncExitStack, asynccontextmanager, suppress
 from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, cast
@@ -9,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, cast
 from construct import Container
 from serial_asyncio_fast import open_serial_connection
 
-from .exception import CommandError, CommandStatusError, ConnectError
+from .exception import CommandError, CommandStatusError, ConnectError, ModuleRestartedError
 from .models import (
     ConfigModeStatus,
     FirmwareVersion,
@@ -19,6 +20,7 @@ from .models import (
     container_to_model,
 )
 from .protocol import (
+    BaudRateIndex,
     Command,
     CommandCode,
     CommandFrame,
@@ -29,11 +31,16 @@ from .protocol import (
     Report,
 )
 
+if sys.version_info >= (3, 11):
+    from asyncio import timeout
+else:
+    from async_timeout import timeout  # type: ignore[import-not-found]
+
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Awaitable, Mapping
     from types import TracebackType
 
-    from typing_extensions import Concatenate, ParamSpec, Self, TypeAlias, Unpack
+    from typing_extensions import Concatenate, Never, ParamSpec, Self, TypeAlias, Unpack
 
     _P = ParamSpec('_P')
     _T = TypeVar('_T')
@@ -72,11 +79,13 @@ class LD2410:
         *,
         baudrate: int = DEFAULT_BAUDRATE,
         read_bufsize: int | None = None,
+        read_timeout: float | None = None,
     ) -> None:
         """Create a new client the supplied device."""
         self._baudrate = baudrate
         self._device = device
         self._read_bufsize = read_bufsize
+        self._read_timeout = read_timeout
         self._config_lock = asyncio.Lock()
         self._request_lock = asyncio.Lock()
         self._connected = False
@@ -190,18 +199,6 @@ class LD2410:
             with suppress(asyncio.QueueFull):
                 replies.put_nowait(None)
 
-    def _raise_for_status(self, reply: _ReplyType) -> None:
-        """Raise when the reply status is unsuccessful."""
-        if int(reply.status) != ReplyStatus.SUCCESS:
-            raise CommandStatusError(
-                f'Command {reply.code} returned a bad status: {reply.status}'
-            )
-
-    def _warn_for_status(self, reply: _ReplyType) -> None:
-        """Warn on logger when the reply status is unsuccessful."""
-        if int(reply.status) != ReplyStatus.SUCCESS:
-            logger.warning('Command %s returned a bad status: %u', reply.code, reply.status)
-
     async def _request(
         self,
         code: CommandCode,
@@ -216,74 +213,106 @@ class LD2410:
             if not self.connected:
                 raise ConnectError('We are not connected to the device anymore!')
 
-            frame = CommandFrame.build({'data': command})
-            # Casts are valid here since we just checked `self.connected`.
-            replies = cast(asyncio.Queue[Optional[_ReplyType]], self._replies)
-            writer = cast(StreamWriter, self._writer)
+            async with timeout(self._read_timeout):
+                frame = CommandFrame.build({'data': command})
+                # Casts are valid here since we just checked `self.connected`.
+                replies = cast(asyncio.Queue[Optional[_ReplyType]], self._replies)
+                writer = cast(StreamWriter, self._writer)
 
-            writer.write(frame)
-            await writer.drain()
+                writer.write(frame)
+                await writer.drain()
 
-            # Loop until we get our reply.
-            valid_reply = False
-            while not valid_reply:
-                reply = await replies.get()
-                replies.task_done()
-                if reply is None:
-                    raise ConnectError('Device has been disconnected')
+                # Loop until we get our reply.
+                valid_reply = False
+                while not valid_reply:
+                    reply = await replies.get()
+                    replies.task_done()
+                    if reply is None:
+                        raise ConnectError('Device has disconnected')
 
-                valid_reply = bool(code == int(reply.code))
-                if not valid_reply:
-                    logger.warning('Got reply OpCode %u (request was %u)', reply.code, code)
+                    valid_reply = bool(code == int(reply.code))
+                    if not valid_reply:
+                        logger.warning('Got reply code %u (request was %u)', reply.code, code)
 
         # MyPy does not see that reply cannot be None on here.
-        return cast(_ReplyType, reply)
+        reply = cast(_ReplyType, reply)
+        if int(reply.status) != ReplyStatus.SUCCESS:
+            raise CommandStatusError(f'Command {code} received bad status: {reply.status}')
+
+        return reply
 
     @asynccontextmanager
     async def configure(self) -> AsyncIterator[ConfigModeStatus]:
         """Enter configuration mode."""
         async with self._config_lock:
             resp = await self._request(CommandCode.CONFIG_ENABLE)
-            self._raise_for_status(resp)
-
+            restarted = False
             try:
                 yield container_to_model(ConfigModeStatus, resp.data)
+            except ModuleRestartedError:
+                logger.info('Configuration context has closed due to module restart.')
+                restarted = True
             finally:
-                resp = await self._request(CommandCode.CONFIG_DISABLE)
-                self._warn_for_status(resp)
+                if not restarted:
+                    try:
+                        await self._request(CommandCode.CONFIG_DISABLE)
+                    except CommandStatusError as exc:
+                        logger.warning(str(exc))
 
     # @configuration
     async def get_firmware_version(self) -> FirmwareVersion:
         """Get the current firmware version."""
         resp = await self._request(CommandCode.FIRMWARE_VERSION)
-        self._raise_for_status(resp)
         return container_to_model(FirmwareVersion, resp.data)
 
     @configuration
     async def get_parameters(self) -> ParametersStatus:
         """Read general parameters (requires configuration mode)."""
         resp = await self._request(CommandCode.PARAMETERS_READ)
-        self._raise_for_status(resp)
         return container_to_model(ParametersStatus, resp.data)
+
+    @configuration
+    async def reset_to_factory(self) -> None:
+        """Reset the module to its factory settings.
+
+        This command is effective after a module restart.
+        """
+        await self._request(CommandCode.FACTORY_RESET)
+
+    @configuration
+    async def restart_module(self) -> Never:
+        """Restart the module.
+
+        Please note that it can take at least 1100ms for it to be available again.
+        Raises a `ModuleRestartedError` intended to be caught by the configuration context.
+        """
+        await self._request(CommandCode.MODULE_RESTART)
+        raise ModuleRestartedError('Module is being restarted')
+
+    @configuration
+    async def set_baudrate(self, baudrate: int) -> None:
+        """Set the serial baud rate to operate.
+
+        Only baud rates from `BaudRateIndex` are valid, a KeyError is raised otherwise.
+        This command is effective after a module restart.
+        """
+        data = {'index': int(BaudRateIndex.from_integer(baudrate))}
+        await self._request(CommandCode.BAUD_RATE_SET, data)
 
     @configuration
     async def set_engineering_mode(self, enabled: bool) -> None:
         """Set device in engineering mode (requires configuration mode)."""
         code = CommandCode.ENGINEERING_ENABLE if enabled else CommandCode.ENGINEERING_DISABLE
-        resp = await self._request(code)
-        self._raise_for_status(resp)
+        await self._request(code)
 
     @configuration
     async def set_parameters(self, **kwargs: Unpack[ParametersConfig]) -> None:
         """Set general parameters (requires configuration mode)."""
         # This step is needed to ensure argument correctness.
         params = ParametersConfig(**kwargs)
-        resp = await self._request(CommandCode.PARAMETERS_WRITE, params)
-        self._raise_for_status(resp)
+        await self._request(CommandCode.PARAMETERS_WRITE, params)
 
     @configuration
     async def set_gate_sentivity(self, **kwargs: Unpack[GateSensitivityConfig]) -> None:
         """Set the sensor sensitivity."""
-        params = GateSensitivityConfig(**kwargs)
-        resp = await self._request(CommandCode.GATE_SENSITIVITY_SET, params)
-        self._raise_for_status(resp)
+        await self._request(CommandCode.GATE_SENSITIVITY_SET, GateSensitivityConfig(**kwargs))
