@@ -2,22 +2,25 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from contextlib import AsyncExitStack
-from typing import TYPE_CHECKING, Any
+from contextlib import AsyncExitStack, asynccontextmanager, suppress
+from typing import TYPE_CHECKING, Any, Optional, cast
 
+from construct import Container
 from serial_asyncio_fast import open_serial_connection
 
-from .command import Reply
-from .frame import Frame, FrameType
+from .command import Command, CommandCode, Reply, ReplyStatus
+from .exception import CommandError, ConnectError
+from .frame import CommandFrame, Frame, FrameType
 from .report import Report
 
 if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
     from types import TracebackType
 
-    from construct import Container
-    from typing_extensions import Self
+    from typing_extensions import Self, TypeAlias
 
 
+_ReplyType: TypeAlias = Container[Any]
 logger = logging.getLogger(__package__)
 
 
@@ -37,10 +40,17 @@ class LD2410:
         self._baudrate = baudrate
         self._device = device
         self._read_bufsize = read_bufsize
+        self._request_lock = asyncio.Lock()
+        self._connected = False
         self._context = None  # type: AsyncExitStack | None
-        self._replies = None  # type: asyncio.Queue[Container[Any]] | None
+        self._replies = None  # type: asyncio.Queue[_ReplyType | None] | None
         self._rdtask = None  # type: asyncio.Task[None] | None
         self._writer = None  # type: asyncio.StreamWriter | None
+
+    @property
+    def connected(self) -> bool:
+        """Tell whether we are still connected and listening to frames."""
+        return bool(self._connected and self._writer is not None and self._replies is not None)
 
     @property
     def entered(self) -> bool:
@@ -62,7 +72,7 @@ class LD2410:
             context.push_async_callback(writer.wait_closed)
             context.callback(writer.close)
 
-            replies = asyncio.Queue()  # type: asyncio.Queue[Container[Any]]
+            replies = asyncio.Queue()  # type: asyncio.Queue[_ReplyType | None]
             rdtask = asyncio.create_task(
                 self._reader_task(reader, replies),
                 name='aio_ld2410.ld2410.reader',
@@ -78,6 +88,7 @@ class LD2410:
             raise
         else:
             self._context = context
+            self._connected = True
             self._replies = replies
             self._rdtask = rdtask
             self._writer = writer
@@ -95,6 +106,7 @@ class LD2410:
             if context is not None:
                 await context.__aexit__(exc_type, exc_val, exc_tb)
         finally:
+            self._connected = False
             self._context = None
             self._replies = None
             self._rdtask = None
@@ -106,7 +118,7 @@ class LD2410:
     async def _reader_task(
         self,
         reader: asyncio.StreamReader,
-        replies: asyncio.Queue[Container[Any]],
+        replies: asyncio.Queue[_ReplyType | None],
     ) -> None:
         try:
             while chunk := await reader.read(2048):
@@ -122,8 +134,65 @@ class LD2410:
                         # TODO: find a way to provide these reports appropriately.
                         print(report)
                 except Exception:
-                    logger.exception('Unable to parse frame content')
-                    print(chunk.hex(' '))
+                    logger.warning('Unable to parse frame: %s', chunk.hex(' '))
         finally:
-            # TODO: so domething to clear everything and shut-down.
-            pass
+            self._connected = False
+            # This is needed here because we may be stuck waiting on a reply.
+            with suppress(asyncio.QueueFull):
+                replies.put_nowait(None)
+
+    def _raise_for_status(self, reply: _ReplyType) -> None:
+        """Raise when the reply status is unsuccessful."""
+        if int(reply.status) != ReplyStatus.SUCCESS:
+            raise CommandError(f'Command {reply.code} returned a bad status: {reply.status}')
+
+    def _warn_for_status(self, reply: _ReplyType) -> None:
+        """Warn on logger when the reply status is unsuccessful."""
+        if int(reply.status) != ReplyStatus.SUCCESS:
+            logger.warning('Command %s returned a bad status: %u', reply.code, reply.status)
+
+    async def _request(self, code: CommandCode, **kwargs: Any) -> _ReplyType:
+        """Send any kind of command to the device.
+
+        Wait and dequeue the corresponding reply.
+        """
+        command = Command.build({'code': code, 'data': kwargs or None})
+        async with self._request_lock:
+            if not self.connected:
+                raise ConnectError('We are not connected to the device anymore!')
+
+            frame = CommandFrame.build({'data': command})
+            # Casts are valid here since we check `self.connected`.
+            replies = cast(asyncio.Queue[Optional[_ReplyType]], self._replies)
+            writer = cast(asyncio.StreamWriter, self._writer)
+
+            writer.write(frame)
+            await writer.drain()
+
+            # Loop until we get our reply.
+            valid_reply = False
+            while not valid_reply:
+                reply = await replies.get()
+                replies.task_done()
+                if reply is None:
+                    raise ConnectError('Device has been disconnected')
+
+                valid_reply = bool(code == int(reply.code))
+                if not valid_reply:
+                    logger.warning('Got reply OpCode %u (request was %u)', reply.code, code)
+
+        # MyPy does not see that reply cannot be None on here.
+        return cast(_ReplyType, reply)
+
+    @asynccontextmanager
+    async def configure(self) -> AsyncIterator[None]:
+        """Enter configuration mode."""
+        resp = await self._request(CommandCode.CONFIG_ENABLE)
+        self._raise_for_status(resp)
+        # TODO: set a _configurable flag or structure while we are here.
+        try:
+            # TODO: return a dataclass with configuration info (protocol_version, buffer_size).
+            yield
+        finally:
+            resp = await self._request(CommandCode.CONFIG_DISABLE)
+            self._warn_for_status(resp)

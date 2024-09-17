@@ -33,7 +33,7 @@ _ReportEngineering = Struct(
 )
 
 _ReportEngineeringOrNone = If(
-    lambda this: this._.type == ReportType.ENGINEERING.name,
+    lambda this: int(this._.type) == ReportType.ENGINEERING,
     _ReportEngineering,
 )
 

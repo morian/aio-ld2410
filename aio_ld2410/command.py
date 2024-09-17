@@ -104,10 +104,10 @@ class ResolutionIndex(IntEnum):
 
 
 _CommandSwitch = Switch(
-    lambda this: this.code,
+    lambda this: int(this.code),
     {
         # This following configuration is persistent and does not require a restart.
-        CommandCode.PARAMETERS_WRITE.name: Struct(
+        CommandCode.PARAMETERS_WRITE: Struct(
             Const(0, Int16ul),  # Maximum motion distance gate word
             'motion_max_distance_gate' / Int32ul,  # Range 2-8 (gate)
             Const(1, Int16ul),  # Maximum standstill distance gate word
@@ -115,12 +115,12 @@ _CommandSwitch = Switch(
             Const(2, Int16ul),  # No one duration
             'no_one_idle_duration' / Int32ul,  # Range 0-65535 (seconds)
         ),
-        CommandCode.PARAMETERS_READ.name: Pass,
+        CommandCode.PARAMETERS_READ: Pass,
         # The following configuration is lost on restart.
-        CommandCode.ENGINEERING_ENABLE.name: Pass,
-        CommandCode.ENGINEERING_DISABLE.name: Pass,
+        CommandCode.ENGINEERING_ENABLE: Pass,
+        CommandCode.ENGINEERING_DISABLE: Pass,
         # The following configuration is persistent and does not require a restart.
-        CommandCode.GATE_SENSITIVITY_SET.name: Struct(
+        CommandCode.GATE_SENSITIVITY_SET: Struct(
             Const(0, Int16ul),  # Distance gate word
             'distance_gate' / Int32ul,  # Range 1-8 or 0xFFFF for all gates
             Const(1, Int16ul),  # Motion sensitivity word
@@ -128,35 +128,35 @@ _CommandSwitch = Switch(
             Const(2, Int16ul),  # Standstill sensitivity word
             'standstill_sensitivity' / Int32ul,  # Range 0-100 (percent)
         ),
-        CommandCode.FIRMWARE_VERSION.name: Pass,
+        CommandCode.FIRMWARE_VERSION: Pass,
         # The following configuration takes effect after module restart.
-        CommandCode.BAUD_RATE_SET.name: Struct('index' / Enum(Int16ul, BaudRateIndex)),
+        CommandCode.BAUD_RATE_SET: Struct('index' / Enum(Int16ul, BaudRateIndex)),
         # The following configuration takes effect after module restart.
-        CommandCode.FACTORY_RESET.name: Pass,
-        CommandCode.MODULE_RESTART.name: Pass,
+        CommandCode.FACTORY_RESET: Pass,
+        CommandCode.MODULE_RESTART: Pass,
         # The following configuration takes effect after module restart.
-        CommandCode.BLUETOOTH_SET.name: FlagsEnum(Int16ul, enabled=1),
-        CommandCode.BLUETOOTH_MAC_GET.name: Struct('value' / Const(1, Int16ul)),
-        CommandCode.CONFIG_DISABLE.name: Pass,
+        CommandCode.BLUETOOTH_SET: FlagsEnum(Int16ul, enabled=1),
+        CommandCode.BLUETOOTH_MAC_GET: Struct('value' / Const(1, Int16ul)),
+        CommandCode.CONFIG_DISABLE: Pass,
         # The following configuration is lost on restart.
-        CommandCode.CONFIG_ENABLE.name: Struct('value' / Const(1, Int16ul)),
+        CommandCode.CONFIG_ENABLE: Struct('value' / Const(1, Int16ul)),
         ## The following commands are only available on LD2410C.
         # The following command is only available through bluetooth.
-        CommandCode.BLUETOOTH_AUTHENTICATE.name: Struct(
+        CommandCode.BLUETOOTH_AUTHENTICATE: Struct(
             'password' / PaddedString(6, 'ascii'),
         ),
-        CommandCode.BLUETOOTH_PASSWORD_SET.name: Struct('password' / PaddedString(6, 'ascii')),
+        CommandCode.BLUETOOTH_PASSWORD_SET: Struct('password' / PaddedString(6, 'ascii')),
         # The following configuration takes effect after module restart.
-        CommandCode.DISTANCE_RESOLUTION_SET.name: Struct(
+        CommandCode.DISTANCE_RESOLUTION_SET: Struct(
             'resolution' / Enum(Int16ul, ResolutionIndex),
         ),
-        CommandCode.DISTANCE_RESOLUTION_GET.name: Pass,
-        CommandCode.AUXILIARY_CONTROL_SET.name: Struct(
+        CommandCode.DISTANCE_RESOLUTION_GET: Pass,
+        CommandCode.AUXILIARY_CONTROL_SET: Struct(
             'control' / Enum(Byte, AuxiliaryControl),
             'threshold' / Byte,  # From 0 to 255
             'default' / Enum(Int16ul, OutPinLevel),
         ),
-        CommandCode.AUXILIARY_CONTROL_GET.name: Pass,
+        CommandCode.AUXILIARY_CONTROL_GET: Pass,
     },
     Error,
 )
@@ -170,10 +170,10 @@ Command = Struct(
 
 
 _ReplySwitch = Switch(
-    lambda this: this.code,
+    lambda this: int(this.code),
     {
-        CommandCode.PARAMETERS_WRITE.name: Pass,
-        CommandCode.PARAMETERS_READ.name: Struct(
+        CommandCode.PARAMETERS_WRITE: Pass,
+        CommandCode.PARAMETERS_READ: Struct(
             Const(0xAA, Byte),  # Header
             'max_distance_gate' / Byte,  # The furthest gate this chip can handle (0x08)
             'motion_max_distance_gate' / Byte,  # Configured max motion gate
@@ -182,41 +182,40 @@ _ReplySwitch = Switch(
             'standstill_sensitivity' / Array(9, Byte),  # percent
             'no_one_idle_duration' / Int16ul,  # Range 0-65535 (seconds)
         ),
-        CommandCode.ENGINEERING_ENABLE.name: Pass,
-        CommandCode.ENGINEERING_DISABLE.name: Pass,
-        CommandCode.GATE_SENSITIVITY_SET.name: Pass,
+        CommandCode.ENGINEERING_ENABLE: Pass,
+        CommandCode.ENGINEERING_DISABLE: Pass,
+        CommandCode.GATE_SENSITIVITY_SET: Pass,
         # Documentation says major = what we call here major.minor
         # Note that revision seems to always be displayed in hex.
-        CommandCode.FIRMWARE_VERSION.name: Struct(
+        CommandCode.FIRMWARE_VERSION: Struct(
             'type' / Int16ul,
             'minor' / Byte,
             'major' / Byte,
             'revision' / Hex(Int32ul),
         ),
-        CommandCode.BAUD_RATE_SET.name: Pass,
-        CommandCode.FACTORY_RESET.name: Pass,
-        CommandCode.MODULE_RESTART.name: Pass,
-        CommandCode.BLUETOOTH_SET.name: Pass,
-        CommandCode.BLUETOOTH_MAC_GET.name: Struct(
+        CommandCode.BAUD_RATE_SET: Pass,
+        CommandCode.FACTORY_RESET: Pass,
+        CommandCode.MODULE_RESTART: Pass,
+        CommandCode.BLUETOOTH_SET: Pass,
+        CommandCode.BLUETOOTH_MAC_GET: Struct(
             'address' / Hex(Bytes(6)),
         ),
-        CommandCode.CONFIG_DISABLE.name: Pass,
-        CommandCode.CONFIG_ENABLE.name: Struct(
+        CommandCode.CONFIG_DISABLE: Pass,
+        CommandCode.CONFIG_ENABLE: Struct(
             'protocol_version' / Int16ul,
             'buffer_size' / Int16ul,
         ),
         ## The following replies can only be received on LD2410C.
-        CommandCode.BLUETOOTH_AUTHENTICATE.name: Pass,
-        CommandCode.BLUETOOTH_PASSWORD_SET.name: Pass,
-        CommandCode.DISTANCE_RESOLUTION_SET.name: Pass,
-        CommandCode.DISTANCE_RESOLUTION_GET.name: Struct(
+        CommandCode.BLUETOOTH_AUTHENTICATE: Pass,
+        CommandCode.BLUETOOTH_PASSWORD_SET: Pass,
+        CommandCode.DISTANCE_RESOLUTION_SET: Pass,
+        CommandCode.DISTANCE_RESOLUTION_GET: Struct(
             'resolution' / Enum(Int16ul, ResolutionIndex),
         ),
-
         # The following replies are available on FW v2.4 and later.
         # It seems to be related to the OUT pin behavior.
-        CommandCode.AUXILIARY_CONTROL_SET.name: Pass,
-        CommandCode.AUXILIARY_CONTROL_GET.name: Struct(
+        CommandCode.AUXILIARY_CONTROL_SET: Pass,
+        CommandCode.AUXILIARY_CONTROL_GET: Struct(
             'control' / Enum(Byte, AuxiliaryControl),
             'threshold' / Byte,  # From 0 to 255
             'default' / Enum(Int16ul, OutPinLevel),
