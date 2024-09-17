@@ -12,6 +12,7 @@ from serial_asyncio_fast import open_serial_connection
 from .exception import CommandError, CommandStatusError, ConnectError
 from .models import (
     ConfigModeStatus,
+    FirmwareVersion,
     GateSensitivityConfig,
     ParametersConfig,
     ParametersStatus,
@@ -251,12 +252,12 @@ class LD2410:
                 resp = await self._request(CommandCode.CONFIG_DISABLE)
                 self._warn_for_status(resp)
 
-    @configuration
-    async def set_engineering_mode(self, enabled: bool) -> None:
-        """Set device in engineering mode (requires configuration mode)."""
-        code = CommandCode.ENGINEERING_ENABLE if enabled else CommandCode.ENGINEERING_DISABLE
-        resp = await self._request(code)
+    # @configuration
+    async def get_firmware_version(self) -> FirmwareVersion:
+        """Get the current firmware version."""
+        resp = await self._request(CommandCode.FIRMWARE_VERSION)
         self._raise_for_status(resp)
+        return container_to_model(FirmwareVersion, resp.data)
 
     @configuration
     async def get_parameters(self) -> ParametersStatus:
@@ -264,6 +265,13 @@ class LD2410:
         resp = await self._request(CommandCode.PARAMETERS_READ)
         self._raise_for_status(resp)
         return container_to_model(ParametersStatus, resp.data)
+
+    @configuration
+    async def set_engineering_mode(self, enabled: bool) -> None:
+        """Set device in engineering mode (requires configuration mode)."""
+        code = CommandCode.ENGINEERING_ENABLE if enabled else CommandCode.ENGINEERING_DISABLE
+        resp = await self._request(code)
+        self._raise_for_status(resp)
 
     @configuration
     async def set_parameters(self, **kwargs: Unpack[ParametersConfig]) -> None:

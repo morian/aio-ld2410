@@ -12,6 +12,7 @@ from construct import (
     Error,
     FlagsEnum,
     Hex,
+    Int16ub,
     Int16ul,
     Int32ul,
     PaddedString,
@@ -188,7 +189,7 @@ _ReplySwitch = Switch(
         # Documentation says major = what we call here major.minor
         # Note that revision seems to always be displayed in hex.
         CommandCode.FIRMWARE_VERSION: Struct(
-            'type' / Int16ul,
+            'type' / Int16ub,
             'minor' / Byte,
             'major' / Byte,
             'revision' / Hex(Int32ul),
