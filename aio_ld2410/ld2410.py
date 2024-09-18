@@ -12,6 +12,8 @@ from serial_asyncio_fast import open_serial_connection
 
 from .exception import CommandError, CommandStatusError, ConnectError, ModuleRestartedError
 from .models import (
+    AuxiliaryControlConfig,
+    AuxiliaryControlStatus,
     ConfigModeStatus,
     FirmwareVersion,
     GateSensitivityConfig,
@@ -29,6 +31,7 @@ from .protocol import (
     Reply,
     ReplyStatus,
     Report,
+    ResolutionIndex,
 )
 
 if sys.version_info >= (3, 11):
@@ -259,7 +262,33 @@ class LD2410:
                     except CommandStatusError as exc:
                         logger.warning(str(exc))
 
-    # @configuration
+    @configuration
+    async def get_auxiliary_controls(self) -> AuxiliaryControlStatus:
+        """Get the auxiliary controls (OUT pin)."""
+        resp = await self._request(CommandCode.AUXILIARY_CONTROL_GET)
+        return container_to_model(AuxiliaryControlStatus, resp.data)
+
+    @configuration
+    async def get_bluetooth_address(self) -> bytes:
+        """Get the module's bluetooth mac address."""
+        resp = await self._request(CommandCode.BLUETOOTH_MAC_GET)
+        return resp.data.address
+
+    @configuration
+    async def get_distance_resolution(self) -> int:
+        """Get the gate distance resolution (in centimeter).
+
+        This command seems to be available for a few devices / firmwares.
+        """
+        resp = await self._request(CommandCode.DISTANCE_RESOLUTION_GET)
+        index = int(resp.data.resolution)
+        if index == ResolutionIndex.RESOLUTION_20CM:
+            return 20
+        if index == ResolutionIndex.RESOLUTION_75CM:
+            return 75
+        raise CommandError(f'Unknown distance resolution index {index}')
+
+    @configuration
     async def get_firmware_version(self) -> FirmwareVersion:
         """Get the current firmware version."""
         resp = await self._request(CommandCode.FIRMWARE_VERSION)
@@ -267,7 +296,7 @@ class LD2410:
 
     @configuration
     async def get_parameters(self) -> ParametersStatus:
-        """Read general parameters (requires configuration mode)."""
+        """Read general parameters."""
         resp = await self._request(CommandCode.PARAMETERS_READ)
         return container_to_model(ParametersStatus, resp.data)
 
@@ -290,27 +319,67 @@ class LD2410:
         raise ModuleRestartedError('Module is being restarted')
 
     @configuration
+    async def set_auxiliary_controls(self, **kwargs: Unpack[AuxiliaryControlConfig]) -> None:
+        """Configure the auxiliary controls (OUT pin)."""
+        await self._request(
+            CommandCode.AUXILIARY_CONTROL_SET,
+            AuxiliaryControlConfig(**kwargs),
+        )
+
+    @configuration
     async def set_baudrate(self, baudrate: int) -> None:
         """Set the serial baud rate to operate.
 
         Only baud rates from `BaudRateIndex` are valid, a KeyError is raised otherwise.
         This command is effective after a module restart.
         """
-        data = {'index': int(BaudRateIndex.from_integer(baudrate))}
-        await self._request(CommandCode.BAUD_RATE_SET, data)
+        await self._request(
+            CommandCode.BAUD_RATE_SET,
+            {'index': int(BaudRateIndex.from_integer(baudrate))},
+        )
+
+    @configuration
+    async def set_bluetooth_mode(self, enabled: bool) -> None:
+        """Set device bluetooth mode."""
+        await self._request(CommandCode.BLUETOOTH_SET, {'enabled': enabled})
+
+    @configuration
+    async def set_bluetooth_password(self, password: str) -> None:
+        """Set device bluetooth password.
+
+        This command seems to be available for a few devices / firmwares.
+        The password must have less than 6 ascii characters.
+        """
+        if len(password) > 6:
+            raise CommandError('Bluetooth password must have less than 6 characters.')
+        await self._request(CommandCode.BLUETOOTH_PASSWORD_SET, {'password': password})
+
+    @configuration
+    async def set_distance_resolution(self, resolution: int) -> None:
+        """Set the gate distance resolution (in centimeter).
+
+        This command seems to be available for a few devices / firmwares.
+        This command requires a module restart to be effective.
+        `resolution` can only be 20 or 75 centimeters.
+        """
+        index = ResolutionIndex.RESOLUTION_75CM
+        if resolution == 20:
+            index = ResolutionIndex.RESOLUTION_20CM
+        elif resolution != 75:
+            raise CommandError(f'Unknown index for distance resolution {resolution}')
+        await self._request(CommandCode.DISTANCE_RESOLUTION_SET, {'resolution': index})
 
     @configuration
     async def set_engineering_mode(self, enabled: bool) -> None:
-        """Set device in engineering mode (requires configuration mode)."""
+        """Set device in engineering mode."""
         code = CommandCode.ENGINEERING_ENABLE if enabled else CommandCode.ENGINEERING_DISABLE
         await self._request(code)
 
     @configuration
     async def set_parameters(self, **kwargs: Unpack[ParametersConfig]) -> None:
-        """Set general parameters (requires configuration mode)."""
+        """Set general parameters."""
         # This step is needed to ensure argument correctness.
-        params = ParametersConfig(**kwargs)
-        await self._request(CommandCode.PARAMETERS_WRITE, params)
+        await self._request(CommandCode.PARAMETERS_WRITE, ParametersConfig(**kwargs))
 
     @configuration
     async def set_gate_sentivity(self, **kwargs: Unpack[GateSensitivityConfig]) -> None:
