@@ -14,8 +14,11 @@ from .models import (
     GateSensitivityConfig,
     ParametersConfig,
     ParametersStatus,
+    ReportBasicStatus,
+    ReportEngineeringStatus,
+    ReportStatus,
 )
-from .protocol import AuxiliaryControl, BaudRateIndex, OutPinLevel
+from .protocol import AuxiliaryControl, BaudRateIndex, OutPinLevel, TargetStatus
 from .version import version
 
 __version__ = version
@@ -36,5 +39,9 @@ __all__ = [
     'OutPinLevel',
     'ParametersConfig',
     'ParametersStatus',
+    'ReportBasicStatus',
+    'ReportEngineeringStatus',
+    'ReportStatus',
+    'TargetStatus',
     'version',
 ]

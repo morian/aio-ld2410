@@ -9,7 +9,7 @@ from .command import (
     ResolutionIndex,
 )
 from .frame import CommandFrame, Frame, FrameType, ReportFrame
-from .report import Report, ReportType
+from .report import Report, ReportType, TargetStatus
 
 __all__ = [
     'AuxiliaryControl',
@@ -26,4 +26,5 @@ __all__ = [
     'ReportFrame',
     'ReportType',
     'ResolutionIndex',
+    'TargetStatus',
 ]

@@ -19,6 +19,7 @@ from .models import (
     GateSensitivityConfig,
     ParametersConfig,
     ParametersStatus,
+    ReportStatus,
     container_to_model,
 )
 from .protocol import (
@@ -90,6 +91,8 @@ class LD2410:
         self._read_bufsize = read_bufsize
         self._read_timeout = read_timeout
         self._config_lock = asyncio.Lock()
+        self._report = None  # type: ReportStatus | None
+        self._report_condition = asyncio.Condition()
         self._request_lock = asyncio.Lock()
         self._connected = False
         self._context = None  # type: AsyncExitStack | None
@@ -186,16 +189,13 @@ class LD2410:
                     if frame.type == FrameType.COMMAND:
                         reply = Reply.parse(frame.data)
                         await replies.put(reply)
-                        print(reply)
                     elif frame.type == FrameType.REPORT:
-                        Report.parse(frame.data)
-                        # report = Report.parse(frame.data)
-                        # TODO: Handle reports
-                        # - Transform this report into a dataclass
-                        # - Use an asyncio.Condition() to notify when a new status is received.
-                        # print(report)
+                        report = Report.parse(frame.data)
+                        async with self._report_condition:
+                            self._report = container_to_model(ReportStatus, report.data)
+                            self._report_condition.notify_all()
                 except Exception:
-                    logger.warning('Unable to parse frame: %s', chunk.hex(' '))
+                    logger.exception('Unable to handle frame: %s', chunk.hex(' '))
         finally:
             self._connected = False
             # This is needed here because we may be stuck waiting on a reply.
@@ -294,11 +294,25 @@ class LD2410:
         resp = await self._request(CommandCode.FIRMWARE_VERSION)
         return container_to_model(FirmwareVersion, resp.data)
 
+    def get_last_report(self) -> ReportStatus | None:
+        """Get the latest report available, if any."""
+        return self._report
+
     @configuration
     async def get_parameters(self) -> ParametersStatus:
         """Read general parameters."""
         resp = await self._request(CommandCode.PARAMETERS_READ)
         return container_to_model(ParametersStatus, resp.data)
+
+    async def get_reports(self) -> AsyncIterator[ReportStatus]:
+        """Get reports as they arrive."""
+        while True:
+            async with self._report_condition:
+                await self._report_condition.wait()
+                report = self._report
+
+            if report is not None:
+                yield report
 
     @configuration
     async def reset_to_factory(self) -> None:

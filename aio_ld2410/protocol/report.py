@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from enum import IntEnum
+from enum import IntEnum, IntFlag
 
-from construct import Array, Byte, Const, Enum, FlagsEnum, If, Int16ul, Struct
+from construct import Array, Byte, Const, Enum, If, Int16ul, Struct
 
 from .command import OutPinLevel
 
@@ -14,8 +14,15 @@ class ReportType(IntEnum):
     BASIC = 2
 
 
+class TargetStatus(IntFlag):
+    """Target's status flags."""
+
+    MOTION = 1
+    STANDSTILL = 2
+
+
 _ReportBasic = Struct(
-    'target_status' / FlagsEnum(Byte, motion=1, standstill=2),
+    'target_status' / Enum(Byte, TargetStatus),
     'motion_distance' / Int16ul,  # in centimeters
     'motion_energy' / Byte,  # in percent
     'standstill_distance' / Int16ul,  # in centimeters
@@ -24,8 +31,8 @@ _ReportBasic = Struct(
 )
 
 _ReportEngineering = Struct(
-    'motion_max_distance_gate' / Byte,  # Gate number
-    'standstill_max_distance_gate' / Byte,  # Gate number
+    'motion_max_distance_gate' / Byte,  # Gate number (should be 8)
+    'standstill_max_distance_gate' / Byte,  # Gate number (should be 8)
     'motion_gate_energy' / Array(9, Byte),  # motion energy per-gate (percent)
     'standstill_gate_energy' / Array(9, Byte),  # standstill energy per-gate (percent)
     'photosensitive_value' / Byte,  # From 0 to 255
