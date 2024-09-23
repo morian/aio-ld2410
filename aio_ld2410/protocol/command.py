@@ -12,6 +12,7 @@ from construct import (
     Error,
     FlagsEnum,
     Hex,
+    If,
     Int16ub,
     Int16ul,
     Int32ul,
@@ -225,10 +226,17 @@ _ReplySwitch = Switch(
     Error,
 )
 
+_ReplySwitchOrNone = If(
+    lambda this: this.status == 0,
+    _ReplySwitch,
+)
+
+
 Reply = Struct(
     'code' / Enum(Byte, CommandCode),
     Const(1, Byte),
     # All commands have a status, therefore it is put in common here.
     'status' / Enum(Int16ul, ReplyStatus),
-    'data' / _ReplySwitch,
+    # 'data' is only present when status is 0 (success).
+    'data' / _ReplySwitchOrNone,
 )
