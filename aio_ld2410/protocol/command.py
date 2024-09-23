@@ -227,7 +227,7 @@ _ReplySwitch = Switch(
 )
 
 _ReplySwitchOrNone = If(
-    lambda this: this.status == 0,
+    lambda this: int(this.status) == ReplyStatus.SUCCESS,
     _ReplySwitch,
 )
 
