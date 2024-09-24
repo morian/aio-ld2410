@@ -8,6 +8,7 @@ from construct import (
     Byte,
     Bytes,
     Const,
+    Default,
     Enum,
     Error,
     FlagsEnum,
@@ -238,5 +239,5 @@ Reply = Struct(
     # All commands have a status, therefore it is put in common here.
     'status' / Enum(Int16ul, ReplyStatus),
     # 'data' is only present when status is 0 (success).
-    'data' / _ReplySwitchOrNone,
+    'data' / Default(_ReplySwitchOrNone, None),
 )

@@ -14,7 +14,7 @@ class CommandStatusError(CommandError):
     """An error raised after a failure status was received."""
 
 
-class ModuleRestartedError(AioLd2410Error):
+class ModuleRestartedError(BaseException):
     """Raised when the module is restarting.
 
     Do not catch this exception, it is used by the configuration context.

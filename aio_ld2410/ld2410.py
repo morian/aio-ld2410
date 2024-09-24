@@ -57,7 +57,7 @@ def configuration(
     func: Callable[Concatenate[LD2410, _P], Awaitable[_T]],
 ) -> Callable[Concatenate[LD2410, _P], Awaitable[_T]]:
     """Decorate an async method so we can check for the configuration context."""
-    if not asyncio.iscoroutinefunction(func):
+    if not asyncio.iscoroutinefunction(func):  # pragma: no cover
         raise RuntimeError('@configuration decorator is only suitable for async methods.')
 
     async def _check_config_context(
@@ -138,7 +138,7 @@ class LD2410:
                 await asyncio.gather(task, return_exceptions=True)
 
             context.push_async_callback(cancel_reader, rdtask)
-        except BaseException:
+        except BaseException:  # pragma: no cover
             await context.aclose()
             raise
         else:
