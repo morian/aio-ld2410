@@ -15,7 +15,7 @@ from .emulator import DeviceEmulator
 
 if TYPE_CHECKING:
     from asyncio import StreamReader, StreamWriter
-    from collections.abc import Iterator
+    from collections.abc import AsyncIterator, Iterator
 
 
 @pytest.fixture(scope='session')
@@ -31,9 +31,11 @@ class FakeServer:
         self.lifespan = lifespan
         self.should_exit = False
         self.socket_path = socket_path
+        self._tasks = []
 
     async def handle_connection(self, reader: StreamReader, writer: StreamWriter) -> None:
         """Handle a new connection, which means a brand new device."""
+        self._tasks.append(asyncio.current_task())
         async with DeviceEmulator(reader, writer) as device:
             await device.wait_for_closing()
 
@@ -54,10 +56,12 @@ class FakeServer:
             )
             for task in pending:
                 task.cancel()
+            for task in self._tasks:
+                task.cancel()
 
 
 @pytest.fixture(scope='class')
-def fake_device() -> Iterator[str]:
+def fake_device_socket() -> Iterator[str]:
     """Run a real server in a separate thread."""
 
     # Inspired by https://github.com/frankie567/httpx-ws/blob/main/tests/conftest.py.
@@ -65,7 +69,7 @@ def fake_device() -> Iterator[str]:
     q_shutdown: Queue[bool] = Queue()
 
     @asynccontextmanager
-    async def lifespan():
+    async def lifespan() -> AsyncIterator[None]:
         q_startup.put(True)
         yield
         q_shutdown.put(True)

@@ -19,16 +19,39 @@ class FakeLD2410(LD2410):
         return await asyncio.open_unix_connection(path=self._device, limit=bufsize)
 
 
+@pytest.fixture
+def raw_device(fake_device_socket):
+    return FakeLD2410(fake_device_socket)
+
+
+@pytest.fixture
+async def device(raw_device):
+    async with raw_device:
+        yield raw_device
+
+
 class TestLD2410:
+    """Test the LD2410 class against the emulator."""
 
-    async def test_initialized(self, fake_device):
-        device = FakeLD2410(fake_device)
+    async def test_initialized(self, raw_device):
+        """Check properties of a device that was not entered."""
+        assert raw_device.configuring is False
+        assert raw_device.connected is False
+        assert raw_device.entered is False
+
+    async def test_entered(self, device):
+        """Check properties of a device that was entered."""
         assert device.configuring is False
-        assert device.connected is False
-        assert device.entered is False
+        assert device.connected is True
+        assert device.entered is True
 
-    async def test_entered(self, fake_device):
-        async with FakeLD2410(fake_device) as device:
-            assert device.configuring is False
-            assert device.connected is True
-            assert device.entered is True
+    async def test_already_closed(self, raw_device):
+        """Check that we can exit a device that was not entered."""
+        assert raw_device.entered is False
+        await raw_device.__aexit__(None, None, None)
+        assert raw_device.entered is False
+
+    async def test_already_entered(self, device):
+        """Try to enter an already entered device."""
+        with pytest.raises(RuntimeError, match='already entered'):
+            await device.__aenter__()
