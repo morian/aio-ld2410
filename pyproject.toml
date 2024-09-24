@@ -66,8 +66,6 @@ source = [
 
 [tool.pytest.ini_options]
 addopts = "--cov=aio_ld2410"
-asyncio_default_fixture_loop_scope = 'function'
-asyncio_mode = 'strict'
 testpaths = ['tests']
 
 [tool.ruff]

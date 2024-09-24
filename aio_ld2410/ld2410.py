@@ -75,6 +75,7 @@ def configuration(
 class LD2410:
     """Client of the LD2410 sensor."""
 
+    DEFAULT_COMMAND_TIMEOUT = 2.0
     DEFAULT_BAUDRATE = 256000
 
     def __init__(
@@ -82,15 +83,15 @@ class LD2410:
         device: str,
         *,
         baudrate: int = DEFAULT_BAUDRATE,
+        command_timeout: float | None = DEFAULT_COMMAND_TIMEOUT,
         read_bufsize: int | None = None,
-        read_timeout: float | None = None,
     ) -> None:
         """Create a new client the supplied device."""
         self._baudrate = baudrate
+        self._command_timeout = command_timeout
         self._device = device
-        self._read_bufsize = read_bufsize
-        self._read_timeout = read_timeout
         self._config_lock = asyncio.Lock()
+        self._read_bufsize = read_bufsize
         self._report = None  # type: ReportStatus | None
         self._report_condition = asyncio.Condition()
         self._request_lock = asyncio.Lock()
@@ -216,7 +217,7 @@ class LD2410:
             if not self.connected:
                 raise ConnectError('We are not connected to the device anymore!')
 
-            async with timeout(self._read_timeout):
+            async with timeout(self._command_timeout):
                 frame = CommandFrame.build({'data': command})
                 # Casts are valid here since we just checked `self.connected`.
                 replies = cast(asyncio.Queue[Optional[_ReplyType]], self._replies)
