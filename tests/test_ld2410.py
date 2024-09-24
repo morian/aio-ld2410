@@ -57,6 +57,7 @@ class TestLD2410:
             await device.__aenter__()
 
     async def test_configuration_mode(self, device):
+        """Enter and test configuration mode."""
         async with device.configure() as config:
             assert device.configuring is True
             assert config.protocol_version == 1
