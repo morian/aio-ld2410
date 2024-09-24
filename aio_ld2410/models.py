@@ -13,7 +13,7 @@ from .protocol import AuxiliaryControl, OutPinLevel, TargetStatus  # noqa: TCH00
 _T = TypeVar('_T')
 
 
-@dataclass(frozen=True)
+@dataclass
 class AuxiliaryControlStatus:
     """Status of the auxiliary controls (OUT pin)."""
 
@@ -68,7 +68,7 @@ class ParametersConfig(TypedDict):
     no_one_idle_duration: int
 
 
-@dataclass(frozen=True)
+@dataclass
 class ParametersStatus:
     """List of current parameters."""
 
@@ -80,7 +80,7 @@ class ParametersStatus:
     no_one_idle_duration: int
 
 
-@dataclass(frozen=True)
+@dataclass
 class ReportBasicStatus:
     """Basic part of the report."""
 
@@ -92,7 +92,7 @@ class ReportBasicStatus:
     detection_distance: int  # in centimeters
 
 
-@dataclass(frozen=True)
+@dataclass
 class ReportEngineeringStatus:
     """Engineering part of the report."""
 
@@ -104,7 +104,7 @@ class ReportEngineeringStatus:
     out_pin_status: OutPinLevel
 
 
-@dataclass(frozen=True)
+@dataclass
 class ReportStatus:
     """Report from the device."""
 

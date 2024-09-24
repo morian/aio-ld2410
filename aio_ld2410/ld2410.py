@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import logging
 import sys
 from asyncio import StreamReader, StreamWriter
@@ -273,7 +274,7 @@ class LD2410:
     async def get_bluetooth_address(self) -> bytes:
         """Get the module's bluetooth mac address."""
         resp = await self._request(CommandCode.BLUETOOTH_MAC_GET)
-        return resp.data.address
+        return bytes(resp.data.address)
 
     @configuration
     async def get_distance_resolution(self) -> int:
@@ -287,7 +288,7 @@ class LD2410:
             return 20
         if index == ResolutionIndex.RESOLUTION_75CM:
             return 75
-        raise CommandError(f'Unknown distance resolution index {index}')
+        raise CommandError(f'Unhandled distance resolution index {index}')
 
     @configuration
     async def get_firmware_version(self) -> FirmwareVersion:
@@ -297,7 +298,7 @@ class LD2410:
 
     def get_last_report(self) -> ReportStatus | None:
         """Get the latest report available, if any."""
-        return self._report
+        return copy.deepcopy(self._report)
 
     @configuration
     async def get_parameters(self) -> ParametersStatus:
@@ -313,7 +314,7 @@ class LD2410:
                 report = self._report
 
             if report is not None:
-                yield report
+                yield copy.deepcopy(report)
 
     @configuration
     async def reset_to_factory(self) -> None:
@@ -363,10 +364,10 @@ class LD2410:
         """Set device bluetooth password.
 
         This command seems to be available for a few devices / firmwares.
-        The password must have less than 6 ascii characters.
+        The password must have no more than 6 ascii characters.
         """
-        if len(password) > 6:
-            raise CommandError('Bluetooth password must have less than 6 characters.')
+        if len(password) > 6 or not password.isascii():
+            raise CommandError('Bluetooth password must have less than 7 ascii characters.')
         await self._request(CommandCode.BLUETOOTH_PASSWORD_SET, {'password': password})
 
     @configuration
