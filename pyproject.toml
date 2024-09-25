@@ -140,6 +140,7 @@ max-complexity = 12
 	'D',      # pydocstyle
 	'RUF012', # mutable-class-default
 	'S101',   # bandit: Use of `assert` detected
+	'S311',   # bandit: no pseudo-random generators for cryptographic purposes
 ]
 
 [tool.mypy]

@@ -36,9 +36,9 @@ from .protocol import (
     ResolutionIndex,
 )
 
-if sys.version_info >= (3, 11):
+if sys.version_info >= (3, 11):  # pragma: no branch
     from asyncio import timeout
-else:
+else:  # pragma: no cover
     from async_timeout import timeout  # type: ignore[import-not-found]
 
 if TYPE_CHECKING:
@@ -58,7 +58,7 @@ def configuration(
     func: Callable[Concatenate[LD2410, _P], Awaitable[_T]],
 ) -> Callable[Concatenate[LD2410, _P], Awaitable[_T]]:
     """Decorate an async method so we can check for the configuration context."""
-    if not asyncio.iscoroutinefunction(func):  # pragma: no cover
+    if not asyncio.iscoroutinefunction(func):
         raise RuntimeError('@configuration decorator is only suitable for async methods.')
 
     async def _check_config_context(
@@ -99,13 +99,14 @@ class LD2410:
         self._connected = False
         self._context = None  # type: AsyncExitStack | None
         self._replies = None  # type: asyncio.Queue[_ReplyType | None] | None
+        self._restarted = False
         self._rdtask = None  # type: asyncio.Task[None] | None
         self._writer = None  # type: StreamWriter | None
 
     @property
     def configuring(self) -> bool:
         """Tell whether configuration mode is currently entered."""
-        return self._config_lock.locked()
+        return bool(not self._restarted and self._config_lock.locked())
 
     @property
     def connected(self) -> bool:
@@ -139,7 +140,7 @@ class LD2410:
                 await asyncio.gather(task, return_exceptions=True)
 
             context.push_async_callback(cancel_reader, rdtask)
-        except BaseException:  # pragma: no cover
+        except BaseException:
             await context.aclose()
             raise
         else:
@@ -191,12 +192,14 @@ class LD2410:
                     if frame.type == FrameType.COMMAND:
                         reply = Reply.parse(frame.data)
                         await replies.put(reply)
-                    elif frame.type == FrameType.REPORT:
+                    elif frame.type == FrameType.REPORT:  # pragma: no branch
                         report = Report.parse(frame.data)
                         async with self._report_condition:
                             self._report = container_to_model(ReportStatus, report.data)
                             self._report_condition.notify_all()
                 except Exception:
+                    # Happens when we received a frame with unknown content.
+                    # For the user perpective this will most likely ends with a timeout.
                     logger.exception('Unable to handle frame: %s', chunk.hex(' '))
         finally:
             self._connected = False
@@ -251,18 +254,14 @@ class LD2410:
         """Enter configuration mode."""
         async with self._config_lock:
             resp = await self._request(CommandCode.CONFIG_ENABLE)
-            restarted = False
             try:
                 yield container_to_model(ConfigModeStatus, resp.data)
             except ModuleRestartedError:
                 logger.info('Configuration context has closed due to module restart.')
-                restarted = True
             finally:
-                if not restarted:
-                    try:
-                        await self._request(CommandCode.CONFIG_DISABLE)
-                    except CommandStatusError as exc:
-                        logger.warning(str(exc))
+                if not self._restarted:
+                    await self._request(CommandCode.CONFIG_DISABLE)
+                self._restarted = False
 
     @configuration
     async def get_auxiliary_controls(self) -> AuxiliaryControlStatus:
@@ -306,15 +305,17 @@ class LD2410:
         resp = await self._request(CommandCode.PARAMETERS_READ)
         return container_to_model(ParametersStatus, resp.data)
 
-    async def get_reports(self) -> AsyncIterator[ReportStatus]:
-        """Get reports as they arrive."""
-        while True:
-            async with self._report_condition:
-                await self._report_condition.wait()
-                report = self._report
+    async def get_next_report(self) -> ReportStatus:
+        """Wait and get the next available report."""
+        async with self._report_condition:
+            await self._report_condition.wait()
+            report = cast(ReportStatus, self._report)
+        return copy.deepcopy(report)
 
-            if report is not None:
-                yield copy.deepcopy(report)
+    async def get_reports(self) -> AsyncIterator[ReportStatus]:
+        """Get reports as an asynchronous iterator."""
+        while True:
+            yield await self.get_next_report()
 
     @configuration
     async def reset_to_factory(self) -> None:
@@ -332,6 +333,7 @@ class LD2410:
         Raises a `ModuleRestartedError` intended to be caught by the configuration context.
         """
         await self._request(CommandCode.MODULE_RESTART)
+        self._restarted = True
         raise ModuleRestartedError('Module is being restarted')
 
     @configuration

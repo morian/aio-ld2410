@@ -1,6 +1,16 @@
-from dataclasses import dataclass
+from __future__ import annotations
 
-from aio_ld2410 import ConfigModeStatus, FirmwareVersion
+import copy
+from dataclasses import dataclass, field
+
+from aio_ld2410 import (
+    AuxiliaryControl,
+    AuxiliaryControlStatus,
+    ConfigModeStatus,
+    FirmwareVersion,
+    OutPinLevel,
+    ParametersStatus,
+)
 from aio_ld2410.protocol import BaudRateIndex, ResolutionIndex
 
 _DefaultConfigModeStatus = ConfigModeStatus(
@@ -8,12 +18,34 @@ _DefaultConfigModeStatus = ConfigModeStatus(
     protocol_version=1,
 )
 _DefaultBluetoothAddress = bytes.fromhex('8f272eb80f65')
+_DefaultBluetoothPassword = 'HiLink'
 _DefaultFirmwareVersion = FirmwareVersion(
     type=0,
     major=1,
     minor=2,
     revision=0x22062416,
 )
+_DefaultParameters = ParametersStatus(
+    max_distance_gate=8,
+    motion_max_distance_gate=8,
+    motion_sensitivity=[50, 50, 40, 30, 20, 15, 15, 15, 15],
+    standstill_max_distance_gate=8,
+    standstill_sensitivity=[0, 0, 40, 40, 30, 30, 20, 20, 20],
+    no_one_idle_duration=5,
+)
+_DefaultAuxiliary = AuxiliaryControlStatus(
+    control=AuxiliaryControl.DISABLED,
+    threshold=128,
+    default=OutPinLevel.LOW,
+)
+
+
+@dataclass
+class EmulatorConfig:
+    """Configure the emulator for specific tests."""
+
+    # Kindly ask the emulator to shutdown the socket.
+    shutdown: bool = False
 
 
 @dataclass
@@ -26,6 +58,21 @@ class DeviceStatus:
     engineering_mode: bool = False
     bluetooth_mode: bool = True
     bluetooth_address: bytes = _DefaultBluetoothAddress
-    bluetooth_password: bytes = b'HiLink'
+    bluetooth_password: str = _DefaultBluetoothPassword
     firmware_version: FirmwareVersion = _DefaultFirmwareVersion
+    parameters: ParametersStatus = field(
+        default_factory=lambda: copy.deepcopy(_DefaultParameters)
+    )
     resolution: ResolutionIndex = ResolutionIndex.RESOLUTION_75CM
+    auxiliary: AuxiliaryControlStatus = field(
+        default_factory=lambda: copy.deepcopy(_DefaultAuxiliary)
+    )
+
+    def reset_to_factory(self) -> None:
+        """Reset these parameters to factory settings."""
+        self.baudrate = BaudRateIndex.RATE_256000
+        self.bluetooth_mode = True
+        self.bluetooth_password = _DefaultBluetoothPassword
+        self.engineering_mode = False
+        self.parameters = copy.deepcopy(_DefaultParameters)
+        self.resolution = ResolutionIndex.RESOLUTION_75CM

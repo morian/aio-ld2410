@@ -102,8 +102,8 @@ class ReplyStatus(IntEnum):
 class ResolutionIndex(IntEnum):
     """Set sensor resolution for LD2410C (gate length)."""
 
-    RESOLUTION_20CM = 0x00
-    RESOLUTION_75CM = 0x01
+    RESOLUTION_75CM = 0x00
+    RESOLUTION_20CM = 0x01
 
 
 _CommandSwitch = Switch(
