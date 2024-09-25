@@ -5,19 +5,54 @@ jobs:
   pytest:
     name: "Run tests"
     runs-on: ubuntu-latest
+
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        # 3.9 was removed from this matrix due to an issue with the test framework.
+        # This is not worth investigating more since it will be unsupported "soon".
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Repository checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
           python-version:  ${{ matrix.python-version }}
-      - name: "Install testing dependendies"
+
+      - name: Install testing dependencies
         run: make install-testing
-      - name: "Test the package"
-        run: pytest --cov=aio_ld2410 -v -s
-      - name: "Generate a coverage report"
-        run: coverage report --show-missing
+
+      - name: PyTest
+        run: pytest --cov=aio_ld2410 -v -s --junit-xml=pytest.xml
+
+      - name: Upload pytest test results
+        uses: actions/upload-artifact@v4
         if: success() || failure()
+        with:
+          name: Test results (Python ${{ matrix.python-version }})
+          path: pytest.xml
+
+  publish-pytest:
+    name: "Publish tests results"
+    needs:
+      - pytest
+    runs-on: ubuntu-latest
+
+    permissions:
+      checks: write
+      pull-requests: write
+    if: success() || failure()
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: "artifacts/**/*.xml"

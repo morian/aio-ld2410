@@ -360,9 +360,10 @@ class EmulatedDevice:
                     )
                     report_data = Report.build({'type': report_type, 'data': asdict(report)})
                     report_frame = ReportFrame.build({'data': report_data})
-                    async with self._write_lock:
-                        self._writer.write(report_frame)
-                        await self._writer.drain()
+                    with suppress(BrokenPipeError, ConnectionResetError):
+                        async with self._write_lock:
+                            self._writer.write(report_frame)
+                            await self._writer.drain()
             except Exception:
                 logger.exception('Unable to build report frame')
 

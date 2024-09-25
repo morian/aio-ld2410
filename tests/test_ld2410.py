@@ -3,7 +3,8 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from asyncio import StreamReader, StreamWriter
+# Python 3.9 and lower have a distinct class for asyncio.TimeoutError.
+from asyncio import StreamReader, StreamWriter, TimeoutError
 from contextlib import suppress
 from dataclasses import asdict
 
@@ -28,9 +29,6 @@ pytestmark = pytest.mark.anyio
 
 class FakeLD2410(LD2410):
     """Fake LD2410 connector, using an unix socket instead."""
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
 
     async def _open_serial_connection(self) -> tuple[StreamReader, StreamWriter]:
         """Open a fake serial connection for this device."""

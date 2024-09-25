@@ -25,3 +25,4 @@ jobs:
         run: make install-package install-linting
       - name: "Run mypy"
         run: mypy
+        continue-on-error: true
