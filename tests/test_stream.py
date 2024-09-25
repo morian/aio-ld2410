@@ -28,6 +28,19 @@ class TestFrameStream:
         count = len(list(stream.read_frames()))
         assert count == 1
 
+    def test_partial_then_complete_frame(self):
+        """Push a partial frame, and complete it afterward."""
+        frame = CommandFrame.build({'data': b'STUFF'})
+        stream = FrameStream()
+
+        stream.append(frame[:4])
+        count = len(list(stream.read_frames()))
+        assert count == 0
+
+        stream.append(frame[4:])
+        count = len(list(stream.read_frames()))
+        assert count == 1
+
     def test_corrupted_footer_then_frame(self, caplog):
         frame = CommandFrame.build({'data': b'STUFF'})
         stream = FrameStream(frame[:-1] + frame)

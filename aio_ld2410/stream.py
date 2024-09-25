@@ -69,7 +69,7 @@ class FrameStream(io.BytesIO):
                 else:
                     # No header in sight, stop parsing.
                     parsing = False
-            elif not remain:  # pragma: no branch
+            elif not remain:
                 # Discard processed bytes when nothing remaing.
                 self.truncate()
 

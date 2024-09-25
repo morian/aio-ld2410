@@ -1,8 +1,8 @@
-from .device import EmulatorDevice
+from .device import EmulatedDevice
 from .models import EmulatorCode, EmulatorCommand
 
 __all__ = [
-    'EmulatorDevice',
+    'EmulatedDevice',
     'EmulatorCode',
     'EmulatorCommand',
 ]

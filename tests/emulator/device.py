@@ -61,7 +61,7 @@ def need_configuration_mode(func):
     return _check_configuration_mode
 
 
-class EmulatorDevice:
+class EmulatedDevice:
     """Emulate a fake device for test purpose."""
 
     def __init__(self, reader: StreamReader, writer: StreamWriter) -> None:

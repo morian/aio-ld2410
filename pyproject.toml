@@ -111,7 +111,6 @@ select = [
 	'W',      # pycodestyle warnings
 ]
 ignore = [
-	'A003',   # Class attribute is shadowing a python builtin
 	'COM812', # missing-trailing-comma
 	'D100',   # Missing docstring in public module
 	'D104',   # Missing docstring in public package
@@ -133,12 +132,11 @@ inline-quotes = 'single'
 multiline-quotes = 'double'
 
 [tool.ruff.lint.mccabe]
-max-complexity = 12
+max-complexity = 10
 
 [tool.ruff.lint.per-file-ignores]
 'tests/*.py' = [
 	'D',      # pydocstyle
-	'RUF012', # mutable-class-default
 	'S101',   # bandit: Use of `assert` detected
 	'S311',   # bandit: no pseudo-random generators for cryptographic purposes
 ]
