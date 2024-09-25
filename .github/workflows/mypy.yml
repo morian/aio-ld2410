@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - '*.py'
+  workflow_dispatch:
 
 env:
   PYTHON_VERSION: "3.12"
