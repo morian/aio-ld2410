@@ -24,6 +24,6 @@ jobs:
       - name: "Install linting dependendies"
         run: |
           python -m pip install --upgrade pip
-          make install-linting
+          make install install-linting
       - name: "Run mypy"
         run: mypy
