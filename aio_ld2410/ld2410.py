@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, cast
 from construct import Container
 from serial_asyncio_fast import open_serial_connection
 
-from .exception import CommandError, CommandStatusError, ConnectError, ModuleRestartedError
+from .exception import CommandError, CommandStatusError, ModuleRestartedError
 from .models import (
     AuxiliaryControlConfig,
     AuxiliaryControlStatus,
@@ -28,13 +28,13 @@ from .protocol import (
     Command,
     CommandCode,
     CommandFrame,
-    Frame,
     FrameType,
     Reply,
     ReplyStatus,
     Report,
     ResolutionIndex,
 )
+from .stream import FrameStream
 
 if sys.version_info >= (3, 11):  # pragma: no branch
     from asyncio import timeout
@@ -174,33 +174,36 @@ class LD2410:
 
     async def _open_serial_connection(self) -> tuple[StreamReader, StreamWriter]:
         """Open a serial connection for this device."""
+        # This cannot be tested and is supersed during tests.
         return await open_serial_connection(
             baudrate=self._baudrate,
             limit=self._read_bufsize,
             url=self._device,
-        )
+        )  # pragma: no cover
 
     async def _reader_task(
         self,
         reader: StreamReader,
         replies: asyncio.Queue[_ReplyType | None],
     ) -> None:
+        stream = FrameStream()
         try:
             while chunk := await reader.read(2048):
-                try:
-                    frame = Frame.parse(chunk)
-                    if frame.type == FrameType.COMMAND:
-                        reply = Reply.parse(frame.data)
-                        await replies.put(reply)
-                    elif frame.type == FrameType.REPORT:  # pragma: no branch
-                        report = Report.parse(frame.data)
-                        async with self._report_condition:
-                            self._report = container_to_model(ReportStatus, report.data)
-                            self._report_condition.notify_all()
-                except Exception:
-                    # Happens when we received a frame with unknown content.
-                    # For the user perpective this will most likely ends with a timeout.
-                    logger.exception('Unable to handle frame: %s', chunk.hex(' '))
+                stream.append(chunk)
+                for frame in stream.read_frames():
+                    try:
+                        if frame.type == FrameType.COMMAND:
+                            reply = Reply.parse(frame.data)
+                            await replies.put(reply)
+                        elif frame.type == FrameType.REPORT:  # pragma: no branch
+                            report = Report.parse(frame.data)
+                            async with self._report_condition:
+                                self._report = container_to_model(ReportStatus, report.data)
+                                self._report_condition.notify_all()
+                    except Exception:
+                        # Happens when we received a frame with unknown content.
+                        # For the user perpective this will most likely ends with a timeout.
+                        logger.exception('Unable to handle frame: %s', frame.data.hex(' '))
         finally:
             self._connected = False
             # This is needed here because we may be stuck waiting on a reply.
@@ -219,7 +222,7 @@ class LD2410:
         command = Command.build({'code': code, 'data': args})
         async with self._request_lock:
             if not self.connected:
-                raise ConnectError('We are not connected to the device anymore!')
+                raise ConnectionError('We are not connected to the device anymore!')
 
             async with timeout(self._command_timeout):
                 frame = CommandFrame.build({'data': command})
@@ -236,7 +239,7 @@ class LD2410:
                     reply = await replies.get()
                     replies.task_done()
                     if reply is None:
-                        raise ConnectError('Device has disconnected')
+                        raise ConnectionError('Device has disconnected')
 
                     valid_reply = bool(code == int(reply.code))
                     if not valid_reply:
@@ -259,7 +262,7 @@ class LD2410:
             except ModuleRestartedError:
                 logger.info('Configuration context has closed due to module restart.')
             finally:
-                if not self._restarted:
+                if not self._restarted and self.connected:
                     await self._request(CommandCode.CONFIG_DISABLE)
                 self._restarted = False
 

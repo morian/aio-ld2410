@@ -4,8 +4,9 @@ import asyncio
 import json
 import logging
 from asyncio import Event
-from contextlib import AsyncExitStack
+from contextlib import AsyncExitStack, suppress
 from dataclasses import asdict, is_dataclass
+from enum import IntEnum
 from random import randrange
 from typing import TYPE_CHECKING, Any
 
@@ -33,9 +34,11 @@ from aio_ld2410.protocol import (
     ReportType,
     ResolutionIndex,
 )
+from aio_ld2410.stream import FrameStream
 
-from .models import DeviceStatus, EmulatorConfig
+from .models import DeviceStatus, EmulatorCode, EmulatorCommand
 
+_dacite_config = dacite.Config(cast=[IntEnum])
 logger = logging.getLogger(__package__)
 
 
@@ -58,14 +61,14 @@ def need_configuration_mode(func):
     return _check_configuration_mode
 
 
-class DeviceEmulator:
+class EmulatorDevice:
     """Emulate a fake device for test purpose."""
 
     def __init__(self, reader: StreamReader, writer: StreamWriter) -> None:
         """Create a new emulated LD2410 device from a generic reader/writer."""
         self._closing = Event()
         self._context = None  # type: AsyncExitStack | None
-        self._handlers = {
+        self._cmd_handlers = {
             CommandCode.BAUD_RATE_SET: self._cmd_baud_rate_set,
             CommandCode.CONFIG_DISABLE: self._cmd_config_disable,
             CommandCode.CONFIG_ENABLE: self._cmd_config_enable,
@@ -85,6 +88,16 @@ class DeviceEmulator:
             CommandCode.AUXILIARY_CONTROL_GET: self._cmd_auxiliary_control_get,
             CommandCode.AUXILIARY_CONTROL_SET: self._cmd_auxiliary_control_set,
         }
+        self._emu_handlers = {
+            EmulatorCode.DISCONNECT: self._emu_disconnect,
+            EmulatorCode.GENERATE_CORRUPTED_FRAME: self._emu_generate_corrupted_frame,
+            EmulatorCode.GENERATE_CORRUPTED_COMMAND: self._emu_generate_corrupted_command,
+            EmulatorCode.GENERATE_SPURIOUS_REPLY: self._emu_generate_spurious_reply,
+            EmulatorCode.RETURN_INVALID_RESOLUTION: self._emu_return_invalid_resolution,
+        }
+        self._test_invalid_resolution = False
+        self._test_opcode_mismatch = False
+
         self._status = DeviceStatus()
         self._reader = reader
         self._writer = writer
@@ -182,7 +195,11 @@ class DeviceEmulator:
     @need_configuration_mode
     async def _cmd_distance_resolution_get(self, command: Container[Any]) -> bytes:
         """Handle command DISTANCE_RESOLUTION_GET."""
-        return self._build_reply(command.code, data={'resolution': self._status.resolution})
+        index = self._status.resolution
+        if self._test_invalid_resolution:
+            self._test_invalid_resolution = False
+            index = 25
+        return self._build_reply(command.code, data={'resolution': index})
 
     @need_configuration_mode
     async def _cmd_distance_resolution_set(self, command: Container[Any]) -> bytes:
@@ -259,33 +276,75 @@ class DeviceEmulator:
         aux.default = OutPinLevel(data.default.intvalue)
         return self._build_reply(command.code)
 
+    async def _emu_disconnect(self, command: EmulatorCommand) -> None:
+        """Tell the emulator to stop right now."""
+        raise asyncio.CancelledError
+
+    async def _emu_generate_corrupted_frame(self, command: EmulatorCommand) -> None:
+        """Generate and push a corrupted frame."""
+        async with self._write_lock:
+            self._writer.write(b'I am a very naughty frame')
+            await self._writer.drain()
+
+    async def _emu_generate_corrupted_command(self, command: EmulatorCommand) -> None:
+        """Generate and push a corrupted reply."""
+        async with self._write_lock:
+            frame = CommandFrame.build({'data': b'not a valid reply'})
+            self._writer.write(frame)
+            await self._writer.drain()
+
+    async def _emu_generate_spurious_reply(self, command: EmulatorCommand) -> None:
+        """Generate a valid but unsolicited reply."""
+        async with self._write_lock:
+            frame = CommandFrame.build({'data': self._build_reply_error(0)})
+            self._writer.write(frame)
+            await self._writer.drain()
+
+    async def _emu_return_invalid_resolution(self, command: EmulatorCommand) -> None:
+        """The next resolution request will be an invalid index."""
+        self._test_invalid_resolution = True
+
+    async def _handle_received_frame(self, frame: Frame) -> None:
+        """Handle a single received frame."""
+        if frame.type == FrameType.COMMAND:
+            command = Command.parse(frame.data)
+            handler = self._cmd_handlers.get(command.code.intvalue)
+            if handler is not None:
+                reply_data = await handler(command)
+                reply_frame = CommandFrame.build({'data': reply_data})
+                async with self._write_lock:
+                    self._writer.write(reply_frame)
+                    await self._writer.drain()
+            else:
+                logger.warning('No handler for command: %u', command.code.intvalue)
+        # This is only used for test purpose to communicate extra test config.
+        # It has to be used along with a FakeLD2410 client (only for test purpose).
+        elif frame.type == FrameType.REPORT:
+            command = dacite.from_dict(
+                data_class=EmulatorCommand,
+                data=json.loads(frame.data),
+                config=_dacite_config,
+            )
+            handler = self._emu_handlers.get(command.code)
+            if handler is not None:
+                await handler(command)
+            else:
+                logger.warning('No handler for emulator command %u', command.code)
+
     async def _command_task(self) -> None:
         """Read and handle commands."""
-        while chunk := await self._reader.read(2048):
-            try:
-                frame = Frame.parse(chunk)
-                if frame.type == FrameType.COMMAND:
-                    command = Command.parse(frame.data)
-                    handler = self._handlers.get(command.code.intvalue)
-                    if handler is not None:
-                        reply_data = await handler(command)
-                        reply_frame = CommandFrame.build({'data': reply_data})
-                        async with self._write_lock:
-                            self._writer.write(reply_frame)
-                            await self._writer.drain()
-                    else:
-                        print(chunk.hex(' '))
-                        print(command)
-                # This is only used for test purpose to communicate extra test config.
-                elif frame.type == FrameType.REPORT:
-                    config = dacite.from_dict(
-                        data_class=EmulatorConfig,
-                        data=json.loads(frame.data),
-                    )
-                    print(config)
-            except Exception:
-                logger.exception('Unable to handle frame: %s', chunk.hex(' '))
-        self._closing.set()
+        try:
+            stream = FrameStream()
+
+            while chunk := await self._reader.read(2048):
+                stream.append(chunk)
+                for frame in stream.read_frames():
+                    try:
+                        await self._handle_received_frame(frame)
+                    except Exception:
+                        logger.exception('Unable to handle frame: %s', chunk.hex(' '))
+        finally:
+            self._closing.set()
 
     async def _report_task(self) -> None:
         """Report tasks regularly."""
@@ -349,7 +408,8 @@ class DeviceEmulator:
         context = self._context
         try:
             if context is not None:
-                await context.__aexit__(exc_type, exc_val, exc_tb)
+                with suppress(BrokenPipeError, ConnectionResetError):
+                    await context.__aexit__(exc_type, exc_val, exc_tb)
         finally:
             self._context = None
 

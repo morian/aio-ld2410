@@ -1,10 +1,4 @@
-from .exception import (
-    AioLd2410Error,
-    CommandError,
-    CommandStatusError,
-    ConnectError,
-    ModuleRestartedError,
-)
+from .exception import AioLd2410Error, CommandError, CommandStatusError, ModuleRestartedError
 from .ld2410 import LD2410
 from .models import (
     AuxiliaryControlConfig,
@@ -31,7 +25,6 @@ __all__ = [
     'CommandError',
     'CommandStatusError',
     'ConfigModeStatus',
-    'ConnectError',
     'FirmwareVersion',
     'GateSensitivityConfig',
     'LD2410',

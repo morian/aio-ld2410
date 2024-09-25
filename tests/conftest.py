@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import pytest
 from anyio.from_thread import start_blocking_portal
 
-from .emulator import DeviceEmulator
+from .emulator import EmulatorDevice
 
 if TYPE_CHECKING:
     from asyncio import StreamReader, StreamWriter
@@ -36,8 +36,12 @@ class FakeServer:
     async def handle_connection(self, reader: StreamReader, writer: StreamWriter) -> None:
         """Handle a new connection, which means a brand new device."""
         self._tasks.append(asyncio.current_task())
-        async with DeviceEmulator(reader, writer) as device:
-            await device.wait_for_closing()
+        try:
+            async with EmulatorDevice(reader, writer) as device:
+                await device.wait_for_closing()
+        except BaseException as exc:
+            print(exc)
+            raise
 
     async def wait_for_shutdown(self) -> None:
         """Wait for the shutdown signal."""

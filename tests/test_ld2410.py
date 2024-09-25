@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 import json
+import logging
 from asyncio import StreamReader, StreamWriter
 from contextlib import suppress
 from dataclasses import asdict
@@ -17,7 +20,7 @@ from aio_ld2410 import (
 )
 from aio_ld2410.protocol import ReportFrame
 
-from .emulator import EmulatorConfig
+from .emulator import EmulatorCode, EmulatorCommand
 
 # All test coroutines will be treated as marked.
 pytestmark = pytest.mark.anyio
@@ -35,10 +38,10 @@ class FakeLD2410(LD2410):
         bufsize = self._read_bufsize or 8192
         return await asyncio.open_unix_connection(path=self._device, limit=bufsize)
 
-    async def set_test_configuration(self, config: EmulatorConfig) -> None:
+    async def send_emulator_command(self, command: EmulatorCommand) -> None:
         """Write arbitrary data to the fake server."""
-        config_bytes = json.dumps(asdict(config)).encode()
-        frame = ReportFrame.build({'data': config_bytes})
+        command = json.dumps(asdict(command)).encode()
+        frame = ReportFrame.build({'data': command})
         self._writer.write(frame)
         await self._writer.drain()
 
@@ -320,6 +323,41 @@ class TestLD2410:
                 # 500ms is enough since we generate a report every 100ms.
                 await asyncio.wait_for(device.get_next_report(), timeout=0.5)
 
-    async def test_update_test_config(self, device):
-        config = EmulatorConfig()
-        await device.set_test_configuration(config)
+    async def test_corrupted_frame(self, device, caplog):
+        """Ask the emulator to generate a bad frame."""
+        caplog.set_level(logging.WARNING)
+        async with device.configure():
+            command = EmulatorCommand(code=EmulatorCode.GENERATE_CORRUPTED_FRAME)
+            await device.send_emulator_command(command)
+        assert len(caplog.records) == 1, caplog.records
+        assert caplog.records[0].message.startswith('Skipping 25 garbage bytes')
+
+    async def test_corrupted_command(self, device, caplog):
+        async with device.configure():
+            command = EmulatorCommand(code=EmulatorCode.GENERATE_CORRUPTED_COMMAND)
+            await device.send_emulator_command(command)
+        assert len(caplog.records) == 1, caplog.records
+        assert caplog.records[0].message.startswith('Unable to handle frame:')
+
+    async def test_disconnect(self, device):
+        async with device.configure():
+            command = EmulatorCommand(code=EmulatorCode.DISCONNECT)
+            await device.send_emulator_command(command)
+            with pytest.raises(ConnectionError, match='Device has disconnected'):
+                await device.get_distance_resolution()
+            with pytest.raises(ConnectionError, match='We are not connected to the device'):
+                await device.get_distance_resolution()
+
+    async def test_spurious_reply(self, device, caplog):
+        async with device.configure():
+            command = EmulatorCommand(code=EmulatorCode.GENERATE_SPURIOUS_REPLY)
+            await device.send_emulator_command(command)
+        assert len(caplog.records) == 1, caplog.records
+        assert caplog.records[0].message.startswith('Got reply code 0 (request was 254)')
+
+    async def test_invalid_resolution(self, device):
+        async with device.configure():
+            command = EmulatorCommand(code=EmulatorCode.RETURN_INVALID_RESOLUTION)
+            await device.send_emulator_command(command)
+            with pytest.raises(CommandError, match='Unhandled distance resolution index'):
+                await device.get_distance_resolution()

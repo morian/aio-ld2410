@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import copy
+from collections.abc import Mapping  # noqa: TCH003
 from dataclasses import dataclass, field
+from enum import IntEnum, auto
+from typing import Any
 
 from aio_ld2410 import (
     AuxiliaryControl,
@@ -40,12 +43,22 @@ _DefaultAuxiliary = AuxiliaryControlStatus(
 )
 
 
-@dataclass
-class EmulatorConfig:
-    """Configure the emulator for specific tests."""
+class EmulatorCode(IntEnum):
+    """All kind of emulator-specific commands."""
 
-    # Kindly ask the emulator to shutdown the socket.
-    shutdown: bool = False
+    DISCONNECT = auto()
+    GENERATE_CORRUPTED_FRAME = auto()
+    GENERATE_CORRUPTED_COMMAND = auto()
+    GENERATE_SPURIOUS_REPLY = auto()
+    RETURN_INVALID_RESOLUTION = auto()
+
+
+@dataclass
+class EmulatorCommand:
+    """A command sent to the emulator."""
+
+    code: EmulatorCode
+    data: Mapping[str, Any] | None = None
 
 
 @dataclass
