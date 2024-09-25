@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+
 # Python 3.9 and lower have a distinct class for asyncio.TimeoutError.
 from asyncio import StreamReader, StreamWriter, TimeoutError
 from contextlib import suppress

@@ -1,4 +1,4 @@
-name: "Build, test and publish python packages"
+name: "Build and publish python packages"
 
 on: push
 

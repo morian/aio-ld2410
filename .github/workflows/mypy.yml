@@ -2,10 +2,14 @@ name: "Check typing with MyPy"
 on:
   push:
     paths:
-      - '*.py'
+      - '.github/workflows/mypy.yml'
+      - 'pyproject.toml'
+      - '**.py'
   pull_request:
     paths:
-      - '*.py'
+      - '.github/workflows/mypy.yml'
+      - 'pyproject.toml'
+      - '**.py'
   workflow_dispatch:
 
 env:
@@ -13,16 +17,32 @@ env:
 
 jobs:
   mypy:
-    name: "Run mypy"
+    name: "Run typing checks"
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12"]
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Repository checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: "Install linting dependendies"
+          python-version:  ${{ matrix.python-version }}
+
+      - name: Install linting dependencies
         run: make install-package install-linting
-      - name: "Run mypy"
-        run: mypy
-        continue-on-error: true
+
+      - name: MyPy
+        run: mypy --junit-xml=mypy.xml
+
+      - name: Upload type checking results
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: Type checking results (Python ${{ matrix.python-version }})
+          path: mypy.xml
