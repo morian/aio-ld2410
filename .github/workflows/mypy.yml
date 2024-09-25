@@ -1,4 +1,4 @@
-name: "Type checks with MyPy"
+name: "Check typing with MyPy"
 on:
   push:
     paths:
@@ -22,8 +22,6 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: "Install linting dependendies"
-        run: |
-          python -m pip install --upgrade pip
-          make install install-linting
+        run: make install-package install-linting
       - name: "Run mypy"
         run: mypy

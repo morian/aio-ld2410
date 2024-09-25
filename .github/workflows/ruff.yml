@@ -1,4 +1,4 @@
-name: "Linting checks with ruff"
+name: "Check linting with ruff"
 on:
   push:
     paths:
