@@ -1,0 +1,28 @@
+name: "Type checks with MyPy"
+on:
+  push:
+    paths:
+      - '*.py'
+  pull_request:
+    paths:
+      - '*.py'
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  mypy:
+    name: "Run mypy"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: "Install linting dependendies"
+        run: |
+          python -m pip install --upgrade pip
+          make install-linting
+      - name: "Run mypy"
+        run: mypy

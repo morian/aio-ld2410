@@ -1,0 +1,32 @@
+name: "Linting checks with ruff"
+on:
+  push:
+    paths:
+      - '*.py'
+  pull_request:
+    paths:
+      - '*.py'
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  ruff:
+    name: "Run ruff"
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: "Install linting dependendies"
+        run: |
+          python -m pip install --upgrade pip
+          make install-linting
+      - name: "Run ruff with linting checks"
+        run: ruff check --output-format=github
+      - name: "Run ruff with format checks"
+        run: ruff format --check --diff
+        if: success() || failure()
