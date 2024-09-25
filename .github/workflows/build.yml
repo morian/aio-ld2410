@@ -1,0 +1,33 @@
+name: "Build python packages"
+
+on: push
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PACKAGE_NAME: aio_ld2410
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  build:
+    name: "Build package distribution"
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: "Install build dependencies"
+      run: make install-package
+    - name: "Build both the wheel and the source tarball"
+      run: make build
+    - name: "Check wheel package installation"
+      run: pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
+    - name: Upload the distribution packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: wheels
+        path: dist

@@ -2,8 +2,7 @@ Python asyncio LD2410 Library
 =============================
 
 `aio_ld2410` allows you to interact with the LD2410 radar sensors from Hi-Link using asyncio.
-Implementation was performed against a LD2410C device with firmware v2.04.23022511.
-It works with a serial adapter on a typical computer, or natively on a Raspberry Pi.
+
 
 ## How to install
 
@@ -16,7 +15,7 @@ This package requires python 3.9 or later, and depends on the following packages
 ### Install from pip
 
 ```console
-pip install aio-ld2410
+$ pip install aio-ld2410
 ```
 
 ### Install for development
@@ -30,6 +29,7 @@ $ make install
 
 User manual and serial communication protocol can be found on
 [Hi-Link Website](https://www.hlktech.net/index.php?id=1095).
+
 This implementation was originally based on `LD2410C Serial communication protocol V1.00.pdf`.
 
 Auxiliary commands were implemented based on `LD2410B Serial communication protocol V1.06.pdf`,
