@@ -1,6 +1,13 @@
 Python asyncio LD2410 Library
 =============================
 
+[![license][badge_license]][link_pypi]
+[![version][badge_version]][link_pypi]
+[![pyversions][badge_pyverions]][link_pypi]
+[![coverage][badge_coverage]][link_coverage]
+[![docs][badge_docs]][link_docs]
+[![openssf][badge_openssf]][link_openssf]
+
 `aio_ld2410` allows you to interact with the LD2410 radar sensors from Hi-Link using asyncio.
 
 
@@ -58,4 +65,13 @@ async def async_main():
             print(report)
 ```
 
-Full documentation is not written yet.
+   [badge_coverage]: <https://codecov.io/github/morian/aio_ld2410/graph/badge.svg>
+   [badge_docs]: <https://img.shields.io/readthedocs/aio_ld2410.svg>
+   [badge_license]: <https://img.shields.io/pypi/l/aio_ld2410.svg>
+   [badge_openssf]: <https://bestpractices.coreinfrastructure.org/projects/9487/badge>
+   [badge_pyverions]: <https://img.shields.io/pypi/pyversions/aio_ld2410.svg>
+   [badge_version]: <https://img.shields.io/pypi/v/aio_ld2410.svg>
+   [link_coverage]: <https://codecov.io/github/morian/aio_ld2410>
+   [link_docs]: <https://aio_ld2410.readthedocs.io>
+   [link_openssf]: <https://bestpractices.coreinfrastructure.org/projects/9487>
+   [link_pypi]: <https://pypi.python.org/pypi/aio_ld2410>

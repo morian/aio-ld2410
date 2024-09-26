@@ -16,7 +16,7 @@ Asyncio LD2410 Library
    :target: https://codecov.io/github/morian/aio_ld2410
 
 .. |docs| image:: https://img.shields.io/readthedocs/aio_ld2410.svg
-   :target: https://aio_ld2410.readthedocs.io/
+   :target: https://aio_ld2410.readthedocs.io
 
 .. |openssf| image:: https://bestpractices.coreinfrastructure.org/projects/9487/badge
    :target: https://bestpractices.coreinfrastructure.org/projects/9487
