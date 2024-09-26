@@ -9,13 +9,13 @@ variables:
   PIP_CACHE_DIR: "${CI_PROJECT_DIR}/.pip_cache"
 
 .pip-cache: &pip_cache
-  key: $CI_COMMIT_REF_SLUG
+  key: ${CI_COMMIT_REF_SLUG}-${CI_JOB_NAME_SLUG}
   paths:
     - .pip_cache/
   policy: pull-push
 
 
-python3-package:
+build-package:
   image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
   stage: build
   cache:
@@ -28,7 +28,24 @@ python3-package:
     paths:
       - dist/
 
-python3-linter:
+build-docs:
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
+  stage: build
+  cache:
+    <<: *pip_cache
+  needs: []
+  before_script:
+    - python -m venv venv
+    - source venv/bin/activate
+    - make install-docs
+  script:
+    - make -C docs html
+  artifacts:
+    expire_in: 7 days
+    paths:
+      - docs/_build/html
+
+linting:
   image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
   stage: tests
   cache:
@@ -48,7 +65,7 @@ python3-linter:
       codequality: gl-code-quality-report.json
   allow_failure: true
 
-python3-mypy:
+typing:
   image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
   stage: tests
   cache:
@@ -66,7 +83,7 @@ python3-mypy:
       junit: mypy.xml
   allow_failure: true
 
-python3-tests:
+tests:
   image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
   stage: tests
   needs: []
@@ -87,7 +104,19 @@ python3-tests:
         path: coverage.xml
       junit: pytest.xml
 
-python3-publish:
+pages:
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
+  stage: publish
+  needs:
+    - build-docs
+  script:
+    - mv docs/_build/html public
+  artifacts:
+    expire_in: 7 days
+    paths:
+      - public
+
+publish-package:
   image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
   stage: publish
   variables:
@@ -97,6 +126,6 @@ python3-publish:
   only:
     - tags
   needs:
-    - python3-package
+    - build-package
   script:
     - twine upload dist/aio_ld2410-*.whl

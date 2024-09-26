@@ -1,5 +1,9 @@
 .DEFAULT_GOAL := all
 
+.PHONY:
+install-docs: install-package
+	pip install -r docs/requirements.txt
+
 .PHONY: install-linting
 install-linting:
 	pip install -r tests/requirements-linting.txt
@@ -18,12 +22,16 @@ install-testing: install-package
 	pip install -r tests/requirements-testing.txt
 
 .PHONY: install
-install: install-devel install-testing install-linting
+install: install-devel install-docs install-testing install-linting
 	@echo 'Installed development requirements'
 
 .PHONY: build
 build:
 	python -m build --wheel --sdist
+
+.PHONY: htmldoc
+htmldoc:
+	$(MAKE) -C docs/ html
 
 .PHONY: format
 format:
@@ -53,6 +61,7 @@ all: lint mypy testcov
 
 .PHONY: clean
 clean:
+	$(MAKE) docs/ clean
 	$(RM) .coverage
 	$(RM) .coverage.*
 	$(RM) -r *.egg-info

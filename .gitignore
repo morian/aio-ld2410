@@ -6,6 +6,7 @@
 /.ruff_cache/
 /build/
 /coverage.xml
+/docs/_build/
 /dist/
 /htmlcov/
 /venv/

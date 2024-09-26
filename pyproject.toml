@@ -76,7 +76,11 @@ addopts = "--cov=aio_ld2410"
 testpaths = ['tests']
 
 [tool.ruff]
-include = ['aio_ld2410/*.py', 'tests/*.py']
+include = [
+	'aio_ld2410/*.py',
+	'docs/conf.py',
+	'tests/*.py',
+]
 indent-width = 4
 line-length = 95
 output-format = 'grouped'
@@ -147,6 +151,11 @@ multiline-quotes = 'double'
 max-complexity = 10
 
 [tool.ruff.lint.per-file-ignores]
+'docs/conf.py' = [
+	'A001',  # Variable is shadowing a Python builtin
+	'E402',  # Module level import not at top of file
+	'F401',  # aio_ld2410.version imported but unused
+]
 'tests/*.py' = [
 	'D',      # pydocstyle
 	'S101',   # bandit: Use of `assert` detected
