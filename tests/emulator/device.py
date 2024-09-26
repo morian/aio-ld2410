@@ -89,12 +89,14 @@ class EmulatedDevice:
             CommandCode.AUXILIARY_CONTROL_SET: self._cmd_auxiliary_control_set,
         }
         self._emu_handlers = {
-            EmulatorCode.DISCONNECT: self._emu_disconnect,
+            EmulatorCode.DISCONNECT_NOW: self._emu_disconnect_now,
+            EmulatorCode.DISCONNECT_AFTER_COMMAND: self._emu_disconnect_after_command,
             EmulatorCode.GENERATE_CORRUPTED_FRAME: self._emu_generate_corrupted_frame,
             EmulatorCode.GENERATE_CORRUPTED_COMMAND: self._emu_generate_corrupted_command,
             EmulatorCode.GENERATE_SPURIOUS_REPLY: self._emu_generate_spurious_reply,
             EmulatorCode.RETURN_INVALID_RESOLUTION: self._emu_return_invalid_resolution,
         }
+        self._test_disconnect_on_command = False
         self._test_invalid_resolution = False
         self._test_opcode_mismatch = False
 
@@ -276,7 +278,11 @@ class EmulatedDevice:
         aux.default = OutPinLevel(data.default.intvalue)
         return self._build_reply(command.code)
 
-    async def _emu_disconnect(self, command: EmulatorCommand) -> None:
+    async def _emu_disconnect_after_command(self, command: EmulatorCommand) -> None:
+        """Tell the emulator to stop after the next command."""
+        self._test_disconnect_on_command = True
+
+    async def _emu_disconnect_now(self, command: EmulatorCommand) -> None:
         """Tell the emulator to stop right now."""
         raise asyncio.CancelledError
 
@@ -310,6 +316,11 @@ class EmulatedDevice:
             command = Command.parse(frame.data)
             handler = self._cmd_handlers.get(command.code.intvalue)
             if handler is not None:
+                # We were told to disconnect after the next command.
+                if self._test_disconnect_on_command:
+                    self._test_disconnect_on_command = False
+                    raise asyncio.CancelledError
+
                 reply_data = await handler(command)
                 reply_frame = CommandFrame.build({'data': reply_data})
                 async with self._write_lock:

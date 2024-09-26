@@ -46,7 +46,8 @@ _DefaultAuxiliary = AuxiliaryControlStatus(
 class EmulatorCode(IntEnum):
     """All kind of emulator-specific commands."""
 
-    DISCONNECT = auto()
+    DISCONNECT_NOW = auto()
+    DISCONNECT_AFTER_COMMAND = auto()
     GENERATE_CORRUPTED_FRAME = auto()
     GENERATE_CORRUPTED_COMMAND = auto()
     GENERATE_SPURIOUS_REPLY = auto()

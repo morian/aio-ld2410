@@ -340,19 +340,15 @@ class TestLD2410:
 
     async def test_disconnect(self, device):
         async with device.configure():
-            command = EmulatorCommand(code=EmulatorCode.DISCONNECT)
+            command = EmulatorCommand(code=EmulatorCode.DISCONNECT_AFTER_COMMAND)
             await device.send_emulator_command(command)
 
-            with pytest.raises(
-                (ConnectionError, BrokenPipeError),
-                match='Device has disconnected',
-            ):
+            # Disconnect occurs right after the command was sent.
+            with pytest.raises(ConnectionError, match='Device has disconnected'):
                 await device.get_distance_resolution()
 
-            with pytest.raises(
-                (ConnectionError, BrokenPipeError),
-                match='We are not connected to the device',
-            ):
+            # Device was already disconnected and we already know it.
+            with pytest.raises(ConnectionError, match='We are not connected to the device'):
                 await device.get_distance_resolution()
 
     async def test_spurious_reply(self, device, caplog):
