@@ -8,7 +8,7 @@ from typing import Any, TypeVar, TypedDict
 import dacite
 from construct import Container, EnumIntegerString
 
-from .protocol import AuxiliaryControl, OutPinLevel, TargetStatus  # noqa: TCH001
+from .protocol import AuxiliaryControl, OutPinLevel, TargetStatus
 
 _T = TypeVar('_T')
 

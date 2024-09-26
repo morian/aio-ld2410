@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from aio_ld2410.protocol import BaudRateIndex, Command, CommandCode, CommandFrame, Reply

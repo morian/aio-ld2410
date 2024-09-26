@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .exception import AioLd2410Error, CommandError, CommandStatusError, ModuleRestartedError
 from .ld2410 import LD2410
 from .models import (

@@ -41,6 +41,8 @@ class FakeServer:
 
     async def wait_for_shutdown(self) -> None:
         """Wait for the shutdown signal."""
+        # An asyncio event does not work well here
+        # This may be because multiple loops are being used.
         while not self.should_exit:  # noqa: ASYNC110
             await asyncio.sleep(0.1)
 

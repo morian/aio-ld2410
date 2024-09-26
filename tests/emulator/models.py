@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from collections.abc import Mapping  # noqa: TCH003
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import IntEnum, auto
 from typing import Any
