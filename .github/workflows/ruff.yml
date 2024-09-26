@@ -2,12 +2,12 @@ name: Check linting with ruff
 on:
   push:
     paths:
-      - '.github/workflows/mypy.yml'
+      - '.github/workflows/ruff.yml'
       - 'pyproject.toml'
       - '**.py'
   pull_request:
     paths:
-      - '.github/workflows/mypy.yml'
+      - '.github/workflows/ruff.yml'
       - 'pyproject.toml'
       - '**.py'
   workflow_dispatch:

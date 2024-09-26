@@ -1,57 +1,61 @@
-name: "Build and publish python packages"
+name: Build and publish python packages
 
 on: push
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  PACKAGE_NAME: aio_ld2410
-  PYTHON_VERSION: "3.11"
-
 jobs:
   build:
-    name: "Build package distribution"
+    name: Build package distribution
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Repository checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: "Install build dependencies"
+          python-version: '3.11'
+
+      - name: Install build dependencies
         run: make install-package
-      - name: "Build both the wheel and the source tarball"
+
+      - name: Build both wheel and source package
         run: make build
-      - name: "Check wheel package installation"
-        run: pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
-      - name: Upload the distribution packages
+
+      - name: Check wheel package installation
+        run: pip install dist/aio_ld2410-*.whl --force-reinstall
+
+      - name: Upload distribution packages
         uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: dist
 
   publish-pypi:
-    name: "Publsh to PyPI"
-    # Only publish to PyPI on tag pushes.
-    if: startsWith(github.ref, 'refs/tags/')
+    name: Publish to PyPI
     runs-on: ubuntu-latest
     needs:
       - build
+
+    # Only publish to PyPI on tag pushes.
+    if: startsWith(github.ref, 'refs/tags/v')
+
     environment:
       name: pypi
-      url: https://pypi.org/p/${{ env.PACKAGE_NAME }}
+      url: 'https://pypi.org/p/aio_ld2410'
+
     permissions:
       # For PyPI's trusted publishing.
       id-token: write
+
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
           name: wheels
           path: dist/
-          merge-multiple: true
-      - name: "Publish to PyPi"
+
+      - name: Publish to PyPi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
@@ -59,7 +63,7 @@ jobs:
           verbose: true
 
   github-release:
-    name: "Sign packages and upload them to GitHub Release"
+    name: Sign packages and upload them to GitHub Release
     needs:
       - publish-pypi
     runs-on: ubuntu-latest
@@ -69,31 +73,29 @@ jobs:
       id-token: write  # IMPORTANT: mandatory for sigstore
 
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
           name: wheels
           path: dist/
-      - name: "Sign the dists with Sigstore"
+
+      - name: Sign the dists with Sigstore
         uses: sigstore/gh-action-sigstore-python@v2.1.1
         with:
           inputs: >-
             ./dist/*.tar.gz
             ./dist/*.whl
-      - name: "Create GitHub Release"
+
+      - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create
-          '${{ github.ref_name }}'
-          --repo '${{ github.repository }}'
-          --notes ""
-      - name: Upload artifact signatures to GitHub Release
+        run: |
+          gh release create '${{ github.ref_name }}' --repo '${{ github.repository }}' --notes ""
+
+      - name: Upload artifact and signatures to GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
         # Upload to GitHub Release using the `gh` CLI.
-        # `dist/` contains the built packages, and the
-        # sigstore-produced signatures and certificates.
-        run: >-
-          gh release upload
-          '${{ github.ref_name }}' dist/**
-          --repo '${{ github.repository }}'
+        # `dist/` contains the built packages, and the sigstore-produced signatures and certificates.
+        run: |
+          gh release upload '${{ github.ref_name }}' dist/** --repo '${{ github.repository }}'
