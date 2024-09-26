@@ -31,9 +31,11 @@ included on most embedded such as the `Raspberry Pi`_.
 .. _Raspberry Pi: https://www.raspberrypi.com/
 
 This library supports a wide range of variants in terms of models and firmware versions,
-and was mostly tested on `LD2410C` with firmware `v2.04.23022511`. It features comprehensible
+and was mostly tested on LD2410C_ with firmware ``v2.04.23022511``. It features comprehensible
 methods to get and set various configuration parameters, as well as :mod:`dataclasses` for
 output results and sensor reports.
+
+.. _LD2410C: https://www.hlktech.net/index.php?id=1095
 
 Here's how you can start reading sensor reports from a few lines of python:
 
