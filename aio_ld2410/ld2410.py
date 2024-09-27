@@ -222,7 +222,8 @@ class LD2410:
         code: CommandCode,
         args: Mapping[str, Any] | None = None,
     ) -> _ReplyType:
-        """Send any kind of command to the device.
+        """
+        Send any kind of command to the device.
 
         Wait and dequeue the corresponding reply.
         """
@@ -287,7 +288,8 @@ class LD2410:
 
     @configuration
     async def get_distance_resolution(self) -> int:
-        """Get the gate distance resolution (in centimeter).
+        """
+        Get the gate distance resolution (in centimeter).
 
         This command seems to be available for a few devices / firmwares.
         """
@@ -329,7 +331,8 @@ class LD2410:
 
     @configuration
     async def reset_to_factory(self) -> None:
-        """Reset the module to its factory settings.
+        """
+        Reset the module to its factory settings.
 
         This command is effective after a module restart.
         """
@@ -337,7 +340,8 @@ class LD2410:
 
     @configuration
     async def restart_module(self, *, close_config_context: bool = False) -> None:
-        """Restart the module.
+        """
+        Restart the module.
 
         Please note that it can take at least 1100ms for it to be available again.
         Raises a `ModuleRestartedError` intended to be caught by the configuration context.
@@ -359,7 +363,8 @@ class LD2410:
 
     @configuration
     async def set_baudrate(self, baudrate: int) -> None:
-        """Set the serial baud rate to operate.
+        """
+        Set the serial baud rate to operate.
 
         Only baud rates from `BaudRateIndex` are acceptable.
         This command is effective after a module restart.
@@ -378,7 +383,8 @@ class LD2410:
 
     @configuration
     async def set_bluetooth_password(self, password: str) -> None:
-        """Set device bluetooth password.
+        """
+        Set device bluetooth password.
 
         This command seems to be available for a few devices / firmwares.
         The password must have no more than 6 ascii characters.
@@ -391,7 +397,8 @@ class LD2410:
 
     @configuration
     async def set_distance_resolution(self, resolution: int) -> None:
-        """Set the gate distance resolution (in centimeter).
+        """
+        Set the gate distance resolution (in centimeter).
 
         This command seems to be available for a few devices / firmwares.
         This command requires a module restart to be effective.

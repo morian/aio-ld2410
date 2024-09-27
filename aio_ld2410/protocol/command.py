@@ -78,7 +78,8 @@ class BaudRateIndex(IntEnum):
 
     @classmethod
     def from_integer(cls, rate: int) -> Self:
-        """Get the appropriate index from the provided baud rate.
+        """
+        Get the appropriate index from the provided baud rate.
 
         Raises a KeyError when the provided rate cannot be used.
         """

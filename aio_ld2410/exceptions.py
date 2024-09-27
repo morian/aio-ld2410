@@ -1,4 +1,5 @@
-""":mod:`aio_ld2410.exceptions` defines the following hierarchy of exceptions.
+"""
+:mod:`aio_ld2410.exceptions` defines the following hierarchy of exceptions.
 
 * :exc:`BaseAioLd2410Error`
     * :exc:`ModuleRestartedError`
@@ -43,14 +44,16 @@ class CommandStatusError(CommandError):
 
 
 class ConnectionClosedError(ConnectionError, AioLd2410Error):
-    """Raised when we lost the connection to the target module.
+    """
+    Raised when we lost the connection to the target module.
 
     The only relevant action afterward is to close the current client.
     """
 
 
 class ModuleRestartedError(BaseAioLd2410Error):
-    """Raised when the module is being restarted.
+    """
+    Raised when the module is being restarted.
 
     It is used internally to close the current configuration context.
 
