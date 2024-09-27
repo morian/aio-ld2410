@@ -21,13 +21,13 @@ Asyncio LD2410 Library
 .. |openssf| image:: https://bestpractices.coreinfrastructure.org/projects/9487/badge
    :target: https://bestpractices.coreinfrastructure.org/projects/9487
 
-``aio-ld2410`` is a python library that allows you to interact with the `Hi-Link LD2410`_ radar
-sensors from Hi-Link using :mod:`asyncio`.
+``aio-ld2410`` is a python library that allows interacting with the `Hi-Link LD2410`_ sensors
+using :mod:`asyncio`.
 
 .. _Hi-Link LD2410: https://hlktech.net/index.php?id=988
 
-Such sensor would typically requires an USB-UART adapter on most computers but is natively
-included on most embedded such as the `Raspberry Pi`_.
+Such radar sensor would typically requires an USB-UART adapter on most computers but is
+natively included on most embedded such as the `Raspberry Pi`_.
 
 .. _Raspberry Pi: https://www.raspberrypi.com/
 
