@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import functools
 import logging
 import sys
 from asyncio import StreamReader, StreamWriter
 from contextlib import AsyncExitStack, asynccontextmanager, suppress
-from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Optional, TypeVar, cast
 
 from construct import Container
 from serial_asyncio_fast import open_serial_connection
@@ -54,7 +55,7 @@ if TYPE_CHECKING:
 
     from typing_extensions import Concatenate, ParamSpec, Self, TypeAlias, Unpack
 
-    _P = ParamSpec('_P')
+    _ParamSpec = ParamSpec('_ParamSpec')
     _T = TypeVar('_T')
 
 ConstructReply: TypeAlias = Container[Any]
@@ -62,16 +63,23 @@ logger = logging.getLogger(__package__)
 
 
 def configuration(
-    func: Callable[Concatenate[LD2410, _P], Awaitable[_T]],
-) -> Callable[Concatenate[LD2410, _P], Awaitable[_T]]:
-    """Decorate an async method so we can check for the configuration context."""
+    func: Callable[Concatenate[LD2410, _ParamSpec], Awaitable[_T]],
+) -> Callable[Concatenate[LD2410, _ParamSpec], Awaitable[_T]]:
+    """
+    Decorate an async method so we can check for the configuration context.
+
+    Raises:
+        CommandContextError: When the configuration context is not entered.
+
+    """
     if not asyncio.iscoroutinefunction(func):
         raise RuntimeError('@configuration decorator is only suitable for async methods.')
 
+    @functools.wraps(func)
     async def _check_config_context(
         self: LD2410,
-        *args: _P.args,
-        **kwargs: _P.kwargs,
+        *args: _ParamSpec.args,
+        **kwargs: _ParamSpec.kwargs,
     ) -> _T:
         if not self.configuring:
             raise CommandContextError('This method requires a configuration context')
@@ -83,8 +91,8 @@ def configuration(
 class LD2410:
     """Client of the LD2410 sensor."""
 
-    DEFAULT_COMMAND_TIMEOUT = 2.0
-    DEFAULT_BAUDRATE = 256000
+    DEFAULT_COMMAND_TIMEOUT: ClassVar[float] = 2.0
+    DEFAULT_BAUDRATE: ClassVar[int] = 256000
 
     def __init__(
         self,
@@ -94,7 +102,16 @@ class LD2410:
         command_timeout: float | None = DEFAULT_COMMAND_TIMEOUT,
         read_bufsize: int | None = None,
     ) -> None:
-        """Create a new client the supplied device."""
+        """
+        Create a new async client for the provided LD2410 device.
+
+        Args:
+            device: path to the device to use.
+            baudrate: serial baud rate to use.
+            command_timeout: how long to wait for a command reply (in seconds)
+            read_bufsize: max buffer size used by the underlying :class:`asyncio.StreamReader`.
+
+        """
         self._baudrate = baudrate
         self._command_timeout = command_timeout
         self._device = device
@@ -112,21 +129,34 @@ class LD2410:
 
     @property
     def configuring(self) -> bool:
-        """Tell whether configuration mode is currently entered."""
+        """Tell whether the configuration context is currently entered."""
         return bool(not self._restarted and self._config_lock.locked())
 
     @property
     def connected(self) -> bool:
-        """Tell whether we are still connected and listening to frames."""
+        """Tell whether we are still connected and receiving data frames."""
         return bool(self._connected and self._writer is not None and self._replies is not None)
 
     @property
     def entered(self) -> bool:
-        """Tell whether the context manager is already entered."""
+        """Tell whether the device's context manager is entered."""
         return bool(self._context is not None)
 
     async def __aenter__(self) -> Self:
-        """Enter the device's context, open the device."""
+        """
+        Enter the device's context, open the device.
+
+        This initializes the serial link and creates the reader :class:`asyncio.Task`.
+
+        This method, along with :meth:`__aexit__` are called with the following syntax::
+
+            async with LD2410('/dev/ttyUSB0'):
+                pass
+
+        Raises:
+            RuntimeError: when the device is already in use (:attr:`entered`).
+
+        """
         if self.entered:
             raise RuntimeError("LD2410's instance is already entered!")
 
@@ -164,7 +194,15 @@ class LD2410:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> bool:
-        """Exit the device's context."""
+        """
+        Exit the device's context and close the serial link.
+
+        The reader task is also canceled.
+
+        Returns:
+            `False` to let any exception flow through the call stack.
+
+        """
         context = self._context
         try:
             if context is not None:
@@ -181,7 +219,7 @@ class LD2410:
 
     async def _open_serial_connection(self) -> tuple[StreamReader, StreamWriter]:
         """Open a serial connection for this device."""
-        # This cannot be tested and is supersed during tests.
+        # This cannot be tested and is superseded during tests.
         return await open_serial_connection(
             baudrate=self._baudrate,
             limit=self._read_bufsize,
@@ -209,7 +247,7 @@ class LD2410:
                                 self._report_condition.notify_all()
                     except Exception:
                         # Happens when we received a frame with unknown content.
-                        # For the user perpective this will most likely ends with a timeout.
+                        # For the user perspective this will most likely ends with a timeout.
                         logger.exception('Unable to handle frame: %s', frame.data.hex(' '))
         finally:
             self._connected = False
@@ -262,7 +300,29 @@ class LD2410:
 
     @asynccontextmanager
     async def configure(self) -> AsyncIterator[ConfigModeStatus]:
-        """Enter configuration mode."""
+        """
+        Enter the configuration mode.
+
+        As stated on the LD2410 documentation, no reports are generated when the configuration
+        mode is active but the device now accepts configuration commands.
+
+        Note:
+            - This context is protected with an :class:`asyncio.Lock`.
+            - This context absorbs :exc:`.ModuleRestartedError` (see :meth:`restart_module`)
+
+        Use example::
+
+            async with LD2410('/dev/ttyUSB0') as dev:
+                async with dev.configure():
+                    # Some configuration commands
+                    pass
+
+        Returns:
+            The result of the :attr:`.CommandCode.CONFIG_ENABLE` raw command.
+
+            You most likely don't need this returned value.
+
+        """
         async with self._config_lock:
             resp = await self._request(CommandCode.CONFIG_ENABLE)
             try:
@@ -276,13 +336,42 @@ class LD2410:
 
     @configuration
     async def get_auxiliary_controls(self) -> AuxiliaryControlStatus:
-        """Get the auxiliary controls (OUT pin)."""
+        """
+        Get the auxiliary controls parameters for ``OUT`` pin.
+
+        This gets the specific configuration used to control the ``OUT`` pin status
+        with the integrated photo sensor.
+
+        Caution:
+            This command may not be available on your variant or with your firmware.
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandStatusError: when the device replies with a failed status.
+
+        Returns:
+            The status of the auxiliary configuration.
+
+        """
         resp = await self._request(CommandCode.AUXILIARY_CONTROL_GET)
         return container_to_model(AuxiliaryControlStatus, resp.data)
 
     @configuration
     async def get_bluetooth_address(self) -> bytes:
-        """Get the module's bluetooth mac address."""
+        """
+        Get the device's bluetooth mac address.
+
+        The MAC address is returned as raw :class:`bytes`.
+
+        Use example::
+
+            async with LD2410('/dev/ttyUSB0') as dev:
+                async with dev.configure():
+                    addr = await dev.get_bluetooth_address()
+
+                print('MAC address:', addr.hex(':'))
+
+        """
         resp = await self._request(CommandCode.BLUETOOTH_MAC_GET)
         return bytes(resp.data.address)
 
@@ -291,7 +380,20 @@ class LD2410:
         """
         Get the gate distance resolution (in centimeter).
 
-        This command seems to be available for a few devices / firmwares.
+        Caution:
+            This command seems to be available for a few devices / firmwares.
+
+        See Also:
+            The internal :class:`.ResolutionIndex`.
+
+        Returns:
+            The distance resolution in centimeters.
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandReplyError: when the device returns an unknown resolution index.
+            CommandStatusError: when the device replies with a failed status.
+
         """
         resp = await self._request(CommandCode.DISTANCE_RESOLUTION_GET)
         index = int(resp.data.resolution)
@@ -341,10 +443,19 @@ class LD2410:
     @configuration
     async def restart_module(self, *, close_config_context: bool = False) -> None:
         """
-        Restart the module.
+        Restart the module immediately.
 
-        Please note that it can take at least 1100ms for it to be available again.
-        Raises a `ModuleRestartedError` intended to be caught by the configuration context.
+        On my tests it takes at least 1100ms for the module to be responsive again.
+
+        Keyword Args:
+            close_config_context: close the surrounding configuration context by raising a
+                :exc:`.ModuleRestartedError` (see :meth:`configure`).
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandStatusError: when the device replies with a failed status.
+            ModuleRestartedError: when ``close_config_context`` is True (do not catch it).
+
         """
         await self._request(CommandCode.MODULE_RESTART)
 
@@ -355,7 +466,24 @@ class LD2410:
 
     @configuration
     async def set_auxiliary_controls(self, **kwargs: Unpack[AuxiliaryControlConfig]) -> None:
-        """Configure the auxiliary controls (OUT pin)."""
+        """
+        Set the auxiliary controls parameters for ``OUT`` pin.
+
+        This sets the specific configuration used to control the ``OUT`` pin status
+        with the integrated photo sensor.
+
+
+        Hint:
+            See :class:`.AuxiliaryControlConfig` for keyword arguments.
+
+        Caution:
+            This command may not be available on your variant or with your firmware.
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandStatusError: when the device replies with a failed status.
+
+        """
         await self._request(
             CommandCode.AUXILIARY_CONTROL_SET,
             AuxiliaryControlConfig(**kwargs),
@@ -387,11 +515,11 @@ class LD2410:
         Set device bluetooth password.
 
         This command seems to be available for a few devices / firmwares.
-        The password must have no more than 6 ascii characters.
+        The password must have no more than 6 ASCII characters.
         """
         if len(password) > 6 or not password.isascii():
             raise CommandParamError(
-                'Bluetooth password must have less than 7 ascii characters.'
+                'Bluetooth password must have less than 7 ASCII characters.'
             )
         await self._request(CommandCode.BLUETOOTH_PASSWORD_SET, {'password': password})
 
@@ -400,9 +528,23 @@ class LD2410:
         """
         Set the gate distance resolution (in centimeter).
 
-        This command seems to be available for a few devices / firmwares.
-        This command requires a module restart to be effective.
-        `resolution` can only be 20 or 75 centimeters.
+        Args:
+            resolution: per-gate distance (the only valid values are 20 and 75 centimeters).
+
+        Caution:
+            This command seems to be available for a few devices / firmwares.
+
+        Warning:
+            This command requires a module restart to be effective!
+
+        See Also:
+            The internal :class:`.ResolutionIndex`.
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandParamError: when the provided resolution does not match any known value.
+            CommandStatusError: when the device replies with a failed status.
+
         """
         index = ResolutionIndex.RESOLUTION_75CM
         if resolution == 20:

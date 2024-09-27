@@ -8,17 +8,25 @@ from .command import OutPinLevel
 
 
 class ReportType(IntEnum):
-    """Type of report we get here."""
+    """Type of report we received."""
 
-    ENGINEERING = 1
-    BASIC = 2
+    ENGINEERING = 1  #: Advanced report with per-gate values.
+    BASIC = 2  #: Basic report for an easy use.
 
 
 class TargetStatus(IntFlag):
-    """Target's status flags."""
+    """
+    Target's status flags.
 
-    MOTION = 1
-    STANDSTILL = 2
+    This field is present in reports and tells whether the target (if any) is standing,
+    in motion, or both.
+
+    Note that this class derives from :class:`enum.IntFlag`.
+
+    """
+
+    MOTION = 1  #: There is a moving target
+    STANDSTILL = 2  #: There is a stationary target
 
 
 _ReportBasic = Struct(

@@ -8,6 +8,7 @@ from .exceptions import (
     CommandReplyError,
     CommandStatusError,
     ConnectionClosedError,
+    ModuleRestartedError,
 )
 from .ld2410 import LD2410
 from .models import (
@@ -22,7 +23,13 @@ from .models import (
     ReportEngineeringStatus,
     ReportStatus,
 )
-from .protocol import AuxiliaryControl, BaudRateIndex, OutPinLevel, TargetStatus
+from .protocol import (
+    AuxiliaryControl,
+    BaudRateIndex,
+    OutPinLevel,
+    ResolutionIndex,
+    TargetStatus,
+)
 from .version import version
 
 __version__ = version
@@ -42,12 +49,14 @@ __all__ = [
     'FirmwareVersion',
     'GateSensitivityConfig',
     'LD2410',
+    'ModuleRestartedError',
     'OutPinLevel',
     'ParametersConfig',
     'ParametersStatus',
     'ReportBasicStatus',
     'ReportEngineeringStatus',
     'ReportStatus',
+    'ResolutionIndex',
     'TargetStatus',
     'version',
 ]

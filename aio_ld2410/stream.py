@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import io
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from construct import GreedyRange
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__package__)
 class FrameStream:
     """Utility class used to produce frames out :class:`bytes`."""
 
-    FRAME_MIN_SIZE: int = 10
+    FRAME_MIN_SIZE: ClassVar[int] = 10
 
     def __init__(self, initial_bytes: bytes = b'') -> None:
         """

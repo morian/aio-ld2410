@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 class CommandCode(IntEnum):
-    """List of available command OpCodes."""
+    """List of known command OpCodes."""
 
     PARAMETERS_WRITE = 0x60
     PARAMETERS_READ = 0x61
@@ -44,7 +44,7 @@ class CommandCode(IntEnum):
     CONFIG_DISABLE = 0xFE
     CONFIG_ENABLE = 0xFF
 
-    # The following commands are only available on LD2410C.
+    # The following commands are only available on some variants.
     BLUETOOTH_AUTHENTICATE = 0xA8
     BLUETOOTH_PASSWORD_SET = 0xA9
     DISTANCE_RESOLUTION_SET = 0xAA
@@ -57,37 +57,42 @@ class CommandCode(IntEnum):
 
 
 class AuxiliaryControl(IntEnum):
-    """Possible values for auxiliary control."""
+    """Configuration of the auxiliary control."""
 
-    DISABLED = 0
-    UNDER_THRESHOLD = 1
-    ABOVE_THRESHOLD = 2
+    DISABLED = 0  #: The ``OUT`` pin will never be affected by photo-sensor
+    UNDER_THRESHOLD = 1  #: The ``OUT`` pin is HIGH when value is under threshold.
+    ABOVE_THRESHOLD = 2  #: The ``OUT`` pin is HIGH when value is above threshold.
 
 
 class BaudRateIndex(IntEnum):
-    """List of available baud rates."""
+    """Configurable baud rates."""
 
-    RATE_9600 = 0x01
-    RATE_19200 = 0x02
-    RATE_38400 = 0x03
-    RATE_57600 = 0x04
-    RATE_115200 = 0x05
-    RATE_230400 = 0x06
-    RATE_256000 = 0x07
-    RATE_460800 = 0x08
+    RATE_9600 = 0x01  #: Baud rate set to 9600Hz.
+    RATE_19200 = 0x02  #: Baud rate set to 19200Hz.
+    RATE_38400 = 0x03  #: Baud rate set to 38400Hz.
+    RATE_57600 = 0x04  #: Baud rate set to 57600Hz.
+    RATE_115200 = 0x05  #: Baud rate set to 115200Hz.
+    RATE_230400 = 0x06  #: Baud rate set to 230400Hz.
+    RATE_256000 = 0x07  #: Baud rate set to 256000Hz.
+    RATE_460800 = 0x08  #: Baud rate set to 460800Hz.
 
     @classmethod
     def from_integer(cls, rate: int) -> Self:
         """
         Get the appropriate index from the provided baud rate.
 
-        Raises a KeyError when the provided rate cannot be used.
+        Args:
+            rate: the baud rate as an :class:`int`.
+
+        Raises:
+            KeyError: when the provided rate is not configurable.
+
         """
         return cls[f'RATE_{rate}']
 
 
 class OutPinLevel(IntEnum):
-    """Tell the default status of the OUT pin."""
+    """Tell the default status of the ``OUT`` pin."""
 
     LOW = 0
     HIGH = 1
@@ -101,10 +106,21 @@ class ReplyStatus(IntEnum):
 
 
 class ResolutionIndex(IntEnum):
-    """Set sensor resolution for LD2410C (gate length)."""
+    """
+    All possible gate resolution.
 
-    RESOLUTION_75CM = 0x00
-    RESOLUTION_20CM = 0x01
+    The sensors divides the area in some fixed number of ``gates`` (typically 8).
+    Gates have a default resolution of 75 centimeters, but some models / firmwares
+    allow for more precise resolutions.
+
+    See Also:
+        - :meth:`.LD2410.get_distance_resolution`
+        - :meth:`.LD2410.set_distance_resolution`
+
+    """
+
+    RESOLUTION_75CM = 0x00  #: Each gate covers 20 centimeters.
+    RESOLUTION_20CM = 0x01  #: Each gate covers 75 centimeters.
 
 
 _CommandSwitch = Switch(

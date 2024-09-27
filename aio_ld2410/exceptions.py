@@ -57,5 +57,5 @@ class ModuleRestartedError(BaseAioLd2410Error):
 
     It is used internally to close the current configuration context.
 
-    When the exception is asked from :meth:`LD2410.restart_module`, make sure not to catch it.
+    When the exception is asked from :meth:`.LD2410.restart_module`, make sure not to catch it.
     """

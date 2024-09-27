@@ -4,10 +4,11 @@ Utilities
 Frame Stream
 ------------
 
-.. automodule:: aio_ld2410.stream
+.. currentmodule:: aio_ld2410.stream
 
 .. autoclass:: FrameStream
-   :show-inheritance:
+   :no-show-inheritance:
 
-    .. automethod:: __iter__
-    .. automethod:: push
+   .. automethod:: __init__
+   .. automethod:: __iter__
+   .. automethod:: push

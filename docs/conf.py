@@ -14,20 +14,11 @@ import sys
 
 from aio_ld2410 import version as release
 
+# -- General configuration ---------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 project = 'aio-ld2410'
 copyright = '2024, Romain Bezut'
 author = 'Romain Bezut'
-
-
-# -- General configuration ---------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
-
-nitpicky = True
-nitpick_ignore = [
-    # See https://github.com/sphinx-doc/sphinx/issues/12867
-    ('py:class', '_io.BytesIO'),
-    ('py:class', 'construct.lib.containers.Container'),
-]
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -38,6 +29,44 @@ extensions = [
     'sphinx_inline_tabs',
     'sphinx_autodoc_typehints',
 ]
+
+templates_path = ['_templates']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+
+
+# -- Extensions configuration ------------------------------------------------
+# Nitpick configuration
+nitpicky = True
+nitpick_ignore = [
+    # See https://github.com/sphinx-doc/sphinx/issues/12867
+    ('py:class', '_io.BytesIO'),
+    ('py:class', 'construct.lib.containers.Container'),
+]
+
+# Napoleon settings
+napoleon_google_docstring = True
+napoleon_use_admonition_for_notes = True
+
+# Autodoc
+autodoc_default_options = {
+    'show-inheritance': True,
+    'member-order': 'bysource',
+    'exclude-members': '__new__,__init__',
+}
+autodoc_class_signature = 'separated'
+autoclass_content = 'class'
+
+# Sphinx autodoc typehints
+always_use_bars_union = True
+typehints_defaults = 'comma'
+typehints_use_signature = True
+typehints_use_signature_return = True
+
+# InterSphinx
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'construct': ('https://construct.readthedocs.io/en/latest', None),
+}
 
 code_url = f'https://github.com/morian/aio-ld2410/blob/v{release}'
 
@@ -76,32 +105,15 @@ def linkcode_resolve(domain, info):
     return f'{code_url}/{file}#L{start}-L{end}'
 
 
-autodoc_default_options = {
-    'show-inheritance': True,
-}
-
-typehints_document_rtype = False
-# always_document_param_types = True
-always_use_bars_union = True
-typehints_defaults = 'comma'
-typehints_use_signature = True
-typehints_use_signature_return = True
-
-intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'construct': ('https://construct.readthedocs.io/en/latest/', None),
-}
-
-templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
-
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'furo'
 
 html_theme_options = {
+    'source_repository': 'https://github.com/morian/aio-ld2410/',
+    'source_branch': 'master',
+    'source_directory': 'docs/',
     'light_css_variables': {
         'color-brand-primary': '#306998',  # blue from logo
         'color-brand-content': '#0b487a',  # blue more saturated and less dark
@@ -117,8 +129,12 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+html_css_files = [
+    'css/custom.css',
+]
 
 html_copy_source = False
+html_show_sourcelink = True
 html_show_sphinx = False
 html_logo = '_static/aio-ld2410.png'
 html_favicon = '_static/favicon.png'

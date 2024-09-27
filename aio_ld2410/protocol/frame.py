@@ -11,7 +11,7 @@ FRAME_FOOTER_REPORT = b'\xf8\xf7\xf6\xf5'
 
 
 class FrameType(IntEnum):
-    """All possible frame types."""
+    """All known frame types handled by the device."""
 
     COMMAND = 1
     REPORT = 2

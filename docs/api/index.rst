@@ -7,5 +7,7 @@ API reference
 .. toctree::
    :titlesonly:
 
+   client
+   datastructures
    exceptions
    utils

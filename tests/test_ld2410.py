@@ -86,6 +86,17 @@ class TestLD2410:
         assert raw_device.connected is False
         assert raw_device.entered is False
 
+    async def test_client_reuse(self, raw_device):
+        """Checked whether we can reuse the LD2410 object multiple times."""
+
+        assert raw_device.entered is False
+        async with raw_device:
+            assert raw_device.entered is True
+
+        assert raw_device.entered is False
+        async with raw_device:
+            assert raw_device.entered is True
+
     async def test_entered(self, device):
         """Check properties of a device that was entered."""
         assert device.configuring is False
