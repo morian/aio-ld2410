@@ -1,3 +1,16 @@
+""":mod:`aio_ld2410.exceptions` defines the following hierarchy of exceptions.
+
+* :exc:`BaseAioLd2410Error`
+    * :exc:`ModuleRestartedError`
+    * :exc:`AioLd2410Error`
+        * :exc:`ConnectionClosedError`
+        * :exc:`CommandError`
+            * :exc:`CommandContextError`
+            * :exc:`CommandParamError`
+            * :exc:`CommandReplyError`
+            * :exc:`CommandStatusError`
+"""
+
 from __future__ import annotations
 
 
@@ -6,7 +19,7 @@ class BaseAioLd2410Error(BaseException):
 
 
 class AioLd2410Error(Exception, BaseAioLd2410Error):
-    """Base error for all things that should be caught by users."""
+    """Base error for all things that users would like to catch."""
 
 
 class CommandError(AioLd2410Error):
@@ -14,15 +27,19 @@ class CommandError(AioLd2410Error):
 
 
 class CommandContextError(CommandError):
-    """Raised when a command was issued outside of the configuration context."""
+    """Raised when a command was issued outside of a configuration context."""
 
 
 class CommandParamError(CommandError):
     """Raised when command parameters are not suitable for the device."""
 
 
+class CommandReplyError(CommandError):
+    """Raised when the device replied with something we could not understand."""
+
+
 class CommandStatusError(CommandError):
-    """Raised after a failure status was received from device."""
+    """Raised after a failed status was received from device."""
 
 
 class ConnectionClosedError(ConnectionError, AioLd2410Error):
@@ -32,13 +49,10 @@ class ConnectionClosedError(ConnectionError, AioLd2410Error):
     """
 
 
-class CommandReplyError(CommandError):
-    """Raised when the device replied with something we could not understand."""
-
-
 class ModuleRestartedError(BaseAioLd2410Error):
-    """Raised when told to when the module is restarting.
+    """Raised when the module is being restarted.
 
     It is used internally to close the current configuration context.
-    If you ask for this exception, make sure not to catch it.
+
+    When the exception is asked from :meth:`LD2410.restart_module`, make sure not to catch it.
     """

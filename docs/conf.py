@@ -69,11 +69,15 @@ def linkcode_resolve(domain, info):
     return f'{code_url}/{file}#L{start}-L{end}'
 
 
+autodoc_default_options = {
+    'show-inheritance': True,
+}
 autodoc_typehints = 'description'
-
 autodoc_typehints_description_target = 'documented'
 
-intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+}
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']

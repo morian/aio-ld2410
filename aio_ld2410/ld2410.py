@@ -347,7 +347,7 @@ class LD2410:
         self._restarted = True
 
         if close_config_context:
-            raise ModuleRestartedError('Module is being restarted')
+            raise ModuleRestartedError("Module is being restarted from user's request.")
 
     @configuration
     async def set_auxiliary_controls(self, **kwargs: Unpack[AuxiliaryControlConfig]) -> None:

@@ -47,4 +47,5 @@ Here's how you can start reading sensor reports from a few lines of python:
 .. toctree::
    :hidden:
 
+   api/index
    about/index

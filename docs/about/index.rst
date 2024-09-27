@@ -1,5 +1,5 @@
-About aio-ld2410
-================
+About
+=====
 
 All other things you ever wanted to know about this project.
 
