@@ -87,13 +87,14 @@ Contributing
 ------------
 
 Contributions, bug reports and feedbacks are very welcome, feel free to open
-an issue_ or send a `pull request`_.
+an issue_, send a `pull request`_. or `start a discussion`_.
 
-Participants must uphold the `Contributor Covenant code of conduct`_.
+Participants must uphold the `code of conduct`_.
 
 .. _issue: https://github.com/morian/aio-ld2410/issues/new
 .. _pull request: https://github.com/morian/aio-ld2410/compare/
-.. _Contributor Covenant code of conduct: https://github.com/python-websockets/websockets/blob/main/CODE_OF_CONDUCT.md
+.. _start a discussion: https://github.com/morian/aio-ld2410/discussions
+.. _code of conduct: https://github.com/python-websockets/websockets/blob/main/CODE_OF_CONDUCT.md
 
 ``aio-ld2410`` is released under the `MIT license`_.
 

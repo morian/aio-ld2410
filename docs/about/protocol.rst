@@ -25,7 +25,7 @@ The ``LD2410S`` variant seems to be quite different and was not covered by this 
 That anonymous hero on github
 -----------------------------
 
-There is a Chinese version of the ``LD2410B Serial communication protocol v1.06``
+There is a Chinese version of the ``LD2410B Serial communication protocol V1.06``
 from which were extracted the following additional commands:
 
 - Read the distance resolution parameter

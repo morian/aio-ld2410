@@ -15,15 +15,29 @@ By participating in any way, you are expected to uphold this code.
 Contributions
 -------------
 
-`Bug reports`_, `pull requests`_ and feedbacks are very welcome.
+`Bug reports`_ and `pull requests`_ are welcome.
 
 .. _Bug reports: https://github.com/morian/aio-ld2410/issues/new
 .. _pull requests: https://github.com/morian/aio-ld2410/compare/
 
+Before a pull request, make sure to check for linting and typing using the following command:
+
+.. code-block:: console
+
+   $ ruff check
+   $ ruff format --check
+   $ mypy
+
+If if fixes a non trivial issue with the code, a test-case would be nice as well.
+
+.. code-block:: console
+
+   $ pytest
+
 I am especially interested in feedbacks on variants and firmwares behaviors, especially
 if we can find a reliable way to detect the type of variant this library is discussing with.
 
-Also, writing documentation is not my favorite cup of tea, all improvements are welcome!
+Also, writing documentation is not my favorite cup of tea, all improvements are valuable!
 
 
 Questions
