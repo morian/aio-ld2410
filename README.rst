@@ -48,7 +48,8 @@ Installation
 This package requires Python 3.9 or later and pulls a few other packages as dependencies.
 
 To install ``aio-ld2410``, simply run the following command:
-.. code-block:: bash
+
+.. code-block:: console
 
     $ pip install aio-ld2410
 
