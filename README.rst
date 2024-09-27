@@ -3,25 +3,25 @@ Python asyncio LD2410 Library
 
 |licence| |version| |pyversions| |coverage| |docs| |openssf|
 
-.. |licence| image:: https://img.shields.io/pypi/l/aio_ld2410.svg
-    :target: https://pypi.python.org/pypi/aio_ld2410
+.. |licence| image:: https://img.shields.io/pypi/l/aio-ld2410.svg
+   :target: https://pypi.python.org/pypi/aio-ld2410
 
-.. |version| image:: https://img.shields.io/pypi/v/aio_ld2410.svg
-    :target: https://pypi.python.org/pypi/aio_ld2410
+.. |version| image:: https://img.shields.io/pypi/v/aio-ld2410.svg
+   :target: https://pypi.python.org/pypi/aio-ld2410
 
-.. |pyversions| image:: https://img.shields.io/pypi/pyversions/aio_ld2410.svg
-    :target: https://pypi.python.org/pypi/aio_ld2410
+.. |pyversions| image:: https://img.shields.io/pypi/pyversions/aio-ld2410.svg
+   :target: https://pypi.python.org/pypi/aio-ld2410
 
-.. |coverage| image:: https://codecov.io/github/morian/aio_ld2410/graph/badge.svg
-   :target: https://codecov.io/github/morian/aio_ld2410
+.. |coverage| image:: https://codecov.io/github/morian/aio-ld2410/graph/badge.svg
+   :target: https://codecov.io/github/morian/aio-ld2410
 
-.. |docs| image:: https://img.shields.io/readthedocs/aio_ld2410.svg
+.. |docs| image:: https://img.shields.io/readthedocs/aio-ld2410.svg
    :target: https://aio-ld2410.readthedocs.io/en/latest/
 
 .. |openssf| image:: https://bestpractices.coreinfrastructure.org/projects/9487/badge
    :target: https://bestpractices.coreinfrastructure.org/projects/9487
 
-``aio_ld2410`` is a python library that allows you to interact with the `Hi-Link LD2410`_ radar
+``aio-ld2410`` is a python library that allows you to interact with the `Hi-Link LD2410`_ radar
 sensors from Hi-Link using asyncio_.
 
 .. _Hi-Link LD2410: https://hlktech.net/index.php?id=988
@@ -47,10 +47,10 @@ Installation
 
 This package requires Python 3.9 or later and pulls a few other packages as dependencies.
 
-To install aio_ld2410, simply run the following command:
+To install ``aio-ld2410``, simply run the following command:
 .. code-block:: bash
 
-    $ pip install aio_ld2410
+    $ pip install aio-ld2410
 
 
 Usage
@@ -88,9 +88,12 @@ Contributing
 Contributions, bug reports and feedbacks are very welcome, feel free to open
 an issue_ or send a `pull request`_.
 
-.. _issue: https://github.com/morian/aio_ld2410/issues/new
-.. _pull request: https://github.com/morian/aio_ld2410/compare/
+Participants must uphold the `Contributor Covenant code of conduct`_.
 
-``aio_ld2410`` is released under the `MIT license`_.
+.. _issue: https://github.com/morian/aio-ld2410/issues/new
+.. _pull request: https://github.com/morian/aio-ld2410/compare/
+.. _Contributor Covenant code of conduct: https://github.com/python-websockets/websockets/blob/main/CODE_OF_CONDUCT.md
 
-.. _MIT license: https://github.com/morian/aio_ld2410/blob/main/LICENSE
+``aio-ld2410`` is released under the `MIT license`_.
+
+.. _MIT license: https://github.com/morian/aio-ld2410/blob/main/LICENSE

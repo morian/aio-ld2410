@@ -14,7 +14,7 @@ import sys
 
 from aio_ld2410 import version as release
 
-project = 'aio_ld2410'
+project = 'aio-ld2410'
 copyright = '2024, Romain Bezut'
 author = 'Romain Bezut'
 
@@ -32,7 +32,7 @@ extensions = [
     'sphinx_inline_tabs',
 ]
 
-code_url = f'https://github.com/morian/aio_ld2410/blob/v{release}'
+code_url = f'https://github.com/morian/aio-ld2410/blob/v{release}'
 
 
 def linkcode_resolve(domain, info):
@@ -103,3 +103,5 @@ html_static_path = ['_static']
 
 html_copy_source = False
 html_show_sphinx = False
+html_logo = '_static/aio-ld2410.png'
+html_favicon = '_static/favicon.png'

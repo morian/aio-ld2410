@@ -42,7 +42,7 @@ jobs:
 
     environment:
       name: pypi
-      url: 'https://pypi.org/p/aio_ld2410'
+      url: 'https://pypi.org/p/aio-ld2410'
 
     permissions:
       # For PyPI's trusted publishing.
