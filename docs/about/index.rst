@@ -8,5 +8,6 @@ All other things you ever wanted to know about this project.
 
    changelog
    dependencies
+   implementation
    contributing
    license
