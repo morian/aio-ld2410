@@ -57,7 +57,7 @@ if TYPE_CHECKING:
     _P = ParamSpec('_P')
     _T = TypeVar('_T')
 
-_ReplyType: TypeAlias = Container[Any]
+ConstructReply: TypeAlias = Container[Any]
 logger = logging.getLogger(__package__)
 
 
@@ -105,7 +105,7 @@ class LD2410:
         self._request_lock = asyncio.Lock()
         self._connected = False
         self._context = None  # type: AsyncExitStack | None
-        self._replies = None  # type: asyncio.Queue[_ReplyType | None] | None
+        self._replies = None  # type: asyncio.Queue[ConstructReply | None] | None
         self._restarted = False
         self._rdtask = None  # type: asyncio.Task[None] | None
         self._writer = None  # type: StreamWriter | None
@@ -136,7 +136,7 @@ class LD2410:
             context.push_async_callback(writer.wait_closed)
             context.callback(writer.close)
 
-            replies = asyncio.Queue()  # type: asyncio.Queue[_ReplyType | None]
+            replies = asyncio.Queue()  # type: asyncio.Queue[ConstructReply | None]
             rdtask = asyncio.create_task(
                 self._reader_task(reader, replies),
                 name='aio_ld2410.ld2410.reader',
@@ -191,13 +191,13 @@ class LD2410:
     async def _reader_task(
         self,
         reader: StreamReader,
-        replies: asyncio.Queue[_ReplyType | None],
+        replies: asyncio.Queue[ConstructReply | None],
     ) -> None:
         stream = FrameStream()
         try:
             while chunk := await reader.read(2048):
-                stream.append(chunk)
-                for frame in stream.read_frames():
+                stream.push(chunk)
+                for frame in stream:
                     try:
                         if frame.type == FrameType.COMMAND:
                             reply = Reply.parse(frame.data)
@@ -221,7 +221,7 @@ class LD2410:
         self,
         code: CommandCode,
         args: Mapping[str, Any] | None = None,
-    ) -> _ReplyType:
+    ) -> ConstructReply:
         """
         Send any kind of command to the device.
 
@@ -235,7 +235,7 @@ class LD2410:
             async with timeout(self._command_timeout):
                 frame = CommandFrame.build({'data': command})
                 # Casts are valid here since we just checked `self.connected`.
-                replies = cast(asyncio.Queue[Optional[_ReplyType]], self._replies)
+                replies = cast(asyncio.Queue[Optional[ConstructReply]], self._replies)
                 writer = cast(StreamWriter, self._writer)
 
                 writer.write(frame)
@@ -254,7 +254,7 @@ class LD2410:
                         logger.warning('Got reply code %u (request was %u)', reply.code, code)
 
         # MyPy does not see that reply cannot be None on here.
-        reply = cast(_ReplyType, reply)
+        reply = cast(ConstructReply, reply)
         if int(reply.status) != ReplyStatus.SUCCESS:
             raise CommandStatusError(f'Command {code} received bad status: {reply.status}')
 

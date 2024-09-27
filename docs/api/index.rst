@@ -8,3 +8,4 @@ API reference
    :titlesonly:
 
    exceptions
+   utils

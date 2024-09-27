@@ -4,43 +4,81 @@ import io
 import logging
 from typing import TYPE_CHECKING, Any
 
-from construct import Container, GreedyRange
+from construct import GreedyRange
 
 from .protocol import FRAME_HEADER_COMMAND, FRAME_HEADER_REPORT, Frame, FrameHeader
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
+    from construct import Container
+    from typing_extensions import TypeAlias
+
+    ConstructFrame: TypeAlias = Container[Any]
+
 logger = logging.getLogger(__package__)
 
 
-class FrameStream(io.BytesIO):
-    """A custom BytesIO subclass used to handle frames."""
+class FrameStream:
+    """Utility class used to produce frames out :class:`bytes`."""
 
     FRAME_MIN_SIZE: int = 10
 
-    def append(self, data: bytes) -> int:
-        """Append data to the end of the stream with no change to the current position."""
-        pos = self.tell()
-        self.seek(0, io.SEEK_END)
+    def __init__(self, initial_bytes: bytes = b'') -> None:
+        """
+        Create a new frame stream processor.
+
+        Args:
+            initial_bytes: initial bytes pushed to the internal buffer.
+
+        """
+        self._buffer = io.BytesIO(initial_bytes)
+
+    def _get_remaining_length(self) -> int:
+        """
+        Tell how many bytes are left from the current position in the internal buffer.
+
+        Returns:
+            The current cursor position in the internal buffer.
+
+        """
+        pos_cur = self._buffer.tell()
+        self._buffer.seek(0, io.SEEK_END)
+        pos_end = self._buffer.tell()
+        self._buffer.seek(pos_cur, io.SEEK_SET)
+        return pos_end - pos_cur
+
+    def push(self, data: bytes) -> int:
+        """
+        Push new received data to the stream.
+
+        Args:
+            data: additional :class:`bytes` to append.
+
+        Returns:
+            The number of bytes written to the internal buffer.
+
+        """
+        pos = self._buffer.tell()
+        self._buffer.seek(0, io.SEEK_END)
         try:
-            count = self.write(data)
+            count = self._buffer.write(data)
         finally:
-            self.seek(pos, io.SEEK_SET)
+            self._buffer.seek(pos, io.SEEK_SET)
         return count
 
-    def read_frames(self) -> Iterator[Container[Any]]:
-        """Iterate over full frames from the buffer (consumed)."""
+    def __iter__(self) -> Iterator[ConstructFrame]:
+        """Iterate over full frames from the intenal buffer."""
         parsing = True
 
         while parsing:
-            yield from GreedyRange(Frame).parse_stream(self)
+            yield from GreedyRange(Frame).parse_stream(self._buffer)
 
             # Stop parsing when there is less than a frame left.
-            remain = self.remaining_length()
+            remain = self._get_remaining_length()
             parsing = bool(remain >= self.FRAME_MIN_SIZE)
             if parsing:
-                data = bytes(self.getbuffer()[-remain:])
+                data = bytes(self._buffer.getbuffer()[-remain:])
                 positions = []
                 for hdr_bytes in (FRAME_HEADER_COMMAND, FRAME_HEADER_REPORT):
                     pos = data.find(hdr_bytes)
@@ -55,7 +93,7 @@ class FrameStream(io.BytesIO):
                             pos,
                             data[:pos].hex(' '),
                         )
-                        self.seek(pos, io.SEEK_CUR)
+                        self._buffer.seek(pos, io.SEEK_CUR)
                     else:
                         # We already have a header at offset 0.
                         hdr = FrameHeader.parse(data)
@@ -65,18 +103,10 @@ class FrameStream(io.BytesIO):
                         if parsing:
                             # We have a header but some data may be corrupted.
                             logger.warning('Skipping corrupted header: %s', data[:4].hex(' '))
-                            self.seek(4, io.SEEK_CUR)
+                            self._buffer.seek(4, io.SEEK_CUR)
                 else:
                     # No header in sight, stop parsing.
                     parsing = False
             elif not remain:
                 # Discard processed bytes when nothing remaing.
-                self.truncate()
-
-    def remaining_length(self) -> int:
-        """Tell how many bytes are left from the current position."""
-        pos_cur = self.tell()
-        self.seek(0, io.SEEK_END)
-        pos_end = self.tell()
-        self.seek(pos_cur, io.SEEK_SET)
-        return pos_end - pos_cur
+                self._buffer.truncate()

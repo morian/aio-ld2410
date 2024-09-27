@@ -1,7 +1,7 @@
 Exceptions
 ==========
 
-.. currentmodule:: aio_ld2410
+.. currentmodule:: aio_ld2410.exceptions
 
 
 Exception hierarchy

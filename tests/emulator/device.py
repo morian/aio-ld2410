@@ -348,8 +348,8 @@ class EmulatedDevice:
             stream = FrameStream()
 
             while chunk := await self._reader.read(2048):
-                stream.append(chunk)
-                for frame in stream.read_frames():
+                stream.push(chunk)
+                for frame in stream:
                     try:
                         await self._handle_received_frame(frame)
                     except Exception:

@@ -7,6 +7,7 @@ The format is based on `Keep a Changelog`_ and this project adheres to `Semantic
 .. _Keep a Changelog: https://keepachangelog.com/en/1.0.0/
 .. _Semantic Versioning: https://semver.org/spec/v2.0.0.html
 
+.. currentmodule:: aio_ld2410
 
 1.0.0 (UNRELEASED)
 ==================
@@ -17,7 +18,8 @@ Added
 
 Changed
 -------
-- Rework exceptions to make things more straightforward
+- Reworked :mod:`.exceptions` to make things more straightforward
+- Reworked :class:`stream.FrameStream` with a real iterator
 
 
 0.1.0 (2024-09-25)

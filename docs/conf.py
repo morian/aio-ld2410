@@ -23,13 +23,20 @@ author = 'Romain Bezut'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 nitpicky = True
+nitpick_ignore = [
+    # See https://github.com/sphinx-doc/sphinx/issues/12867
+    ('py:class', '_io.BytesIO'),
+    ('py:class', 'construct.lib.containers.Container'),
+]
 
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.linkcode',
     'sphinx.ext.napoleon',
+    'sphinx_copybutton',
     'sphinx_inline_tabs',
+    'sphinx_autodoc_typehints',
 ]
 
 code_url = f'https://github.com/morian/aio-ld2410/blob/v{release}'
@@ -72,11 +79,17 @@ def linkcode_resolve(domain, info):
 autodoc_default_options = {
     'show-inheritance': True,
 }
-autodoc_typehints = 'description'
-autodoc_typehints_description_target = 'documented'
+
+typehints_document_rtype = False
+# always_document_param_types = True
+always_use_bars_union = True
+typehints_defaults = 'comma'
+typehints_use_signature = True
+typehints_use_signature_return = True
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
+    'construct': ('https://construct.readthedocs.io/en/latest/', None),
 }
 
 templates_path = ['_templates']
