@@ -6,7 +6,6 @@ import logging
 
 # Python 3.9 and lower have a distinct class for asyncio.TimeoutError.
 from asyncio import StreamReader, StreamWriter, TimeoutError
-from contextlib import suppress
 from dataclasses import asdict
 
 import pytest
@@ -14,9 +13,11 @@ import pytest
 from aio_ld2410 import (
     LD2410,
     AuxiliaryControl,
-    CommandError,
+    CommandContextError,
+    CommandParamError,
+    CommandReplyError,
     CommandStatusError,
-    ModuleRestartedError,
+    ConnectionClosedError,
     OutPinLevel,
     ld2410,
 )
@@ -117,7 +118,7 @@ class TestLD2410:
     @pytest.mark.parametrize('mode', [True, False])
     async def test_engineering_mode_with_no_config_mode(self, device, mode):
         """Try to set the engineering mode without the configuration mode."""
-        with pytest.raises(CommandError, match='requires a configuration context'):
+        with pytest.raises(CommandContextError, match='requires a configuration context'):
             await device.set_engineering_mode(mode)
 
     async def test_bluetooth_mac_get(self, device):
@@ -137,7 +138,7 @@ class TestLD2410:
     async def test_invalid_baud_rate(self, device, rate):
         """Check that we cannot set invalid baud rates."""
         async with device.configure():
-            with pytest.raises(KeyError):
+            with pytest.raises(CommandParamError):
                 await device.set_baudrate(rate)
 
     @pytest.mark.parametrize('mode', [True, False])
@@ -154,7 +155,10 @@ class TestLD2410:
     @pytest.mark.parametrize('password', ['4bcD3!G', 'Привет'])
     async def test_invalid_bluetooth_passwords(self, device, password):
         async with device.configure():
-            with pytest.raises(CommandError, match='must have less than 7 ascii characters'):
+            with pytest.raises(
+                CommandParamError,
+                match='must have less than 7 ascii characters',
+            ):
                 await device.set_bluetooth_password(password)
 
     async def test_firmware_version(self, device):
@@ -175,10 +179,13 @@ class TestLD2410:
             value = await device.get_distance_resolution()
             assert value == resolution
 
-    async def test_invalid_distanke_resolution(self, device):
+    async def test_invalid_distance_resolution(self, device):
         """Ensure we cannot set an arbitrary resolution value."""
         async with device.configure():
-            with pytest.raises(CommandError, match='Unknown index for distance resolution'):
+            with pytest.raises(
+                CommandParamError,
+                match='Unknown index for distance resolution',
+            ):
                 await device.set_distance_resolution(90)
 
     async def test_factory_reset(self, device):
@@ -254,24 +261,26 @@ class TestLD2410:
                     standstill_sensitivity=10,
                 )
 
-    async def test_module_restart(self, device):
+    async def test_module_restart_with_context_close(self, device):
         """Check a module restart in standard situation."""
         checked = True
         async with device.configure():
-            await device.restart_module()
-            # This is never reached because `restart_module` raises a ModuleRestartedError.
+            await device.restart_module(close_config_context=True)
+
+            # This is never reached because `restart_module`
+            # was told to raises a `ModuleRestartedError`.
             checked = False
+
         assert checked is True
 
-    async def test_module_restart_inhibited(self, device):
-        """Check additional values when we prevent a ModuleRestartedError."""
+    async def test_module_restart_without_context_close(self, device):
+        """Check additional values when we don't raise on module restart."""
         async with device.configure():
             assert device.configuring is True
-            with suppress(ModuleRestartedError):
-                await device.restart_module()
-
+            await device.restart_module()
             assert device.configuring is False
-            with pytest.raises(CommandError, match='requires a configuration context'):
+
+            with pytest.raises(CommandContextError, match='requires a configuration context'):
                 await device.set_engineering_mode(True)
 
     @pytest.mark.parametrize(
@@ -344,11 +353,17 @@ class TestLD2410:
             await device.send_emulator_command(command)
 
             # Disconnect occurs right after the command was sent.
-            with pytest.raises(ConnectionError, match='Device has disconnected'):
+            with pytest.raises(
+                ConnectionClosedError,
+                match='Device has disconnected',
+            ):
                 await device.get_distance_resolution()
 
             # Device was already disconnected and we already know it.
-            with pytest.raises(ConnectionError, match='We are not connected to the device'):
+            with pytest.raises(
+                ConnectionClosedError,
+                match='We are not connected to the device',
+            ):
                 await device.get_distance_resolution()
 
     async def test_spurious_reply(self, device, caplog):
@@ -362,5 +377,8 @@ class TestLD2410:
         async with device.configure():
             command = EmulatorCommand(code=EmulatorCode.RETURN_INVALID_RESOLUTION)
             await device.send_emulator_command(command)
-            with pytest.raises(CommandError, match='Unhandled distance resolution index'):
+            with pytest.raises(
+                CommandReplyError,
+                match='Unhandled distance resolution index',
+            ):
                 await device.get_distance_resolution()

@@ -11,7 +11,14 @@ from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, cast
 from construct import Container
 from serial_asyncio_fast import open_serial_connection
 
-from .exception import CommandError, CommandStatusError, ModuleRestartedError
+from .exceptions import (
+    CommandContextError,
+    CommandParamError,
+    CommandReplyError,
+    CommandStatusError,
+    ConnectionClosedError,
+    ModuleRestartedError,
+)
 from .models import (
     AuxiliaryControlConfig,
     AuxiliaryControlStatus,
@@ -45,7 +52,7 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Awaitable, Mapping
     from types import TracebackType
 
-    from typing_extensions import Concatenate, Never, ParamSpec, Self, TypeAlias, Unpack
+    from typing_extensions import Concatenate, ParamSpec, Self, TypeAlias, Unpack
 
     _P = ParamSpec('_P')
     _T = TypeVar('_T')
@@ -67,7 +74,7 @@ def configuration(
         **kwargs: _P.kwargs,
     ) -> _T:
         if not self.configuring:
-            raise CommandError('This method requires a configuration context')
+            raise CommandContextError('This method requires a configuration context')
         return await func(self, *args, **kwargs)
 
     return _check_config_context
@@ -222,7 +229,7 @@ class LD2410:
         command = Command.build({'code': code, 'data': args})
         async with self._request_lock:
             if not self.connected:
-                raise ConnectionError('We are not connected to the device anymore!')
+                raise ConnectionClosedError('We are not connected to the device anymore!')
 
             async with timeout(self._command_timeout):
                 frame = CommandFrame.build({'data': command})
@@ -239,7 +246,7 @@ class LD2410:
                     reply = await replies.get()
                     replies.task_done()
                     if reply is None:
-                        raise ConnectionError('Device has disconnected')
+                        raise ConnectionClosedError('Device has disconnected')
 
                     valid_reply = bool(code == int(reply.code))
                     if not valid_reply:
@@ -290,7 +297,7 @@ class LD2410:
             return 20
         if index == ResolutionIndex.RESOLUTION_75CM:
             return 75
-        raise CommandError(f'Unhandled distance resolution index {index}')
+        raise CommandReplyError(f'Unhandled distance resolution index {index}')
 
     @configuration
     async def get_firmware_version(self) -> FirmwareVersion:
@@ -329,15 +336,18 @@ class LD2410:
         await self._request(CommandCode.FACTORY_RESET)
 
     @configuration
-    async def restart_module(self) -> Never:
+    async def restart_module(self, *, close_config_context: bool = False) -> None:
         """Restart the module.
 
         Please note that it can take at least 1100ms for it to be available again.
         Raises a `ModuleRestartedError` intended to be caught by the configuration context.
         """
         await self._request(CommandCode.MODULE_RESTART)
+
         self._restarted = True
-        raise ModuleRestartedError('Module is being restarted')
+
+        if close_config_context:
+            raise ModuleRestartedError('Module is being restarted')
 
     @configuration
     async def set_auxiliary_controls(self, **kwargs: Unpack[AuxiliaryControlConfig]) -> None:
@@ -351,13 +361,15 @@ class LD2410:
     async def set_baudrate(self, baudrate: int) -> None:
         """Set the serial baud rate to operate.
 
-        Only baud rates from `BaudRateIndex` are valid, a KeyError is raised otherwise.
+        Only baud rates from `BaudRateIndex` are acceptable.
         This command is effective after a module restart.
         """
-        await self._request(
-            CommandCode.BAUD_RATE_SET,
-            {'index': int(BaudRateIndex.from_integer(baudrate))},
-        )
+        try:
+            index = BaudRateIndex.from_integer(baudrate)
+        except KeyError:
+            raise CommandParamError(f'Unknown index for baudrate {baudrate}') from None
+
+        await self._request(CommandCode.BAUD_RATE_SET, {'index': int(index)})
 
     @configuration
     async def set_bluetooth_mode(self, enabled: bool) -> None:
@@ -372,7 +384,9 @@ class LD2410:
         The password must have no more than 6 ascii characters.
         """
         if len(password) > 6 or not password.isascii():
-            raise CommandError('Bluetooth password must have less than 7 ascii characters.')
+            raise CommandParamError(
+                'Bluetooth password must have less than 7 ascii characters.'
+            )
         await self._request(CommandCode.BLUETOOTH_PASSWORD_SET, {'password': password})
 
     @configuration
@@ -387,7 +401,7 @@ class LD2410:
         if resolution == 20:
             index = ResolutionIndex.RESOLUTION_20CM
         elif resolution != 75:
-            raise CommandError(f'Unknown index for distance resolution {resolution}')
+            raise CommandParamError(f'Unknown index for distance resolution {resolution}')
         await self._request(CommandCode.DISTANCE_RESOLUTION_SET, {'resolution': index})
 
     @configuration

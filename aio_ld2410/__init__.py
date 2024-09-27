@@ -1,6 +1,14 @@
 from __future__ import annotations
 
-from .exception import AioLd2410Error, CommandError, CommandStatusError, ModuleRestartedError
+from .exceptions import (
+    AioLd2410Error,
+    CommandContextError,
+    CommandError,
+    CommandParamError,
+    CommandReplyError,
+    CommandStatusError,
+    ConnectionClosedError,
+)
 from .ld2410 import LD2410
 from .models import (
     AuxiliaryControlConfig,
@@ -25,12 +33,15 @@ __all__ = [
     'AuxiliaryControlStatus',
     'BaudRateIndex',
     'CommandError',
+    'CommandContextError',
+    'CommandParamError',
+    'CommandReplyError',
     'CommandStatusError',
     'ConfigModeStatus',
+    'ConnectionClosedError',
     'FirmwareVersion',
     'GateSensitivityConfig',
     'LD2410',
-    'ModuleRestartedError',
     'OutPinLevel',
     'ParametersConfig',
     'ParametersStatus',
