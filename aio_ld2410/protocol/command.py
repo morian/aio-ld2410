@@ -195,7 +195,7 @@ _ReplySwitch = Switch(
         CommandCode.PARAMETERS_WRITE: Pass,
         CommandCode.PARAMETERS_READ: Struct(
             Const(0xAA, Byte),  # Header
-            'max_distance_gate' / Byte,  # The furthest gate this chip can handle (0x08)
+            'max_distance_gate' / Byte,  # The farthest gate this chip can handle (0x08)
             'motion_max_distance_gate' / Byte,  # Configured max motion gate
             'standstill_max_distance_gate' / Byte,  # Configured max standstill gate
             'motion_sensitivity' / Array(9, Byte),  # percent

@@ -11,10 +11,12 @@ authors = [
 description = 'Asynchonous library for the HiLink LD2410 presence detector module'
 readme = 'README.rst'
 classifiers = [
+	'Framework :: AsyncIO',
 	'Intended Audience :: Developers',
 	'License :: OSI Approved :: MIT License',
 	'Operating System :: POSIX :: Linux',
 	'Programming Language :: Python :: 3',
+	'Programming Language :: Python :: 3 :: Only',
 	'Programming Language :: Python :: 3.9',
 	'Programming Language :: Python :: 3.10',
 	'Programming Language :: Python :: 3.11',
@@ -25,6 +27,7 @@ classifiers = [
 	'Topic :: Software Development :: Libraries :: Python Modules',
 	'Topic :: System :: Hardware',
 	'Topic :: Terminals :: Serial',
+	'Typing :: Typed',
 ]
 dependencies = [
 	'async-timeout >= 4; python_version < "3.11"',
@@ -35,7 +38,8 @@ dependencies = [
 requires-python = '>=3.9'
 
 [project.urls]
-Changelog = 'https://github.com/morian/aio-ld2410/blob/master/CHANGELOG.md'
+Changelog = 'https://github.com/morian/aio-ld2410/blob/master/CHANGELOG.rst'
+Coverage = 'https://app.codecov.io/github/morian/aio-ld2410'
 Documentation = 'https://aio-ld2410.readthedocs.io/en/latest/'
 Homepage = 'https://pypi.org/project/aio-ld2410/'
 Issues = 'https://github.com/morian/aio-ld2410/issues'
@@ -51,7 +55,7 @@ include = [
 version = {attr = 'aio_ld2410.version.version'}
 
 [tool.setuptools.package-data]
-'*' = ['py.typed']
+'aio_ld2410' = ['py.typed']
 
 [tool.coverage.run]
 source = ['aio_ld2410']
@@ -73,7 +77,7 @@ source = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--cov=aio_ld2410"
+addopts = '--cov=aio_ld2410'
 testpaths = ['tests']
 
 [tool.ruff]

@@ -124,10 +124,10 @@ class ParametersConfig(TypedDict, total=True):
 
     """
 
-    #: Furthest gate to consider for motion detection (from 2 to 8).
+    #: Farthest gate to consider for motion detection (from 2 to 8).
     motion_max_distance_gate: int
 
-    #: Furthest gate to consider for stationary detection (from 2 to 8).
+    #: Farthest gate to consider for stationary detection (from 2 to 8).
     standstill_max_distance_gate: int
 
     #: How long to keep detecting a presence after the person moved away (0 to 65535 seconds).
@@ -145,16 +145,16 @@ class ParametersStatus:
 
     """
 
-    #: Furthest configurable gate number (should be 8).
+    #: Farthest configurable gate number (should be 8).
     max_distance_gate: int
 
-    #: Furthest configured gate number for motion detection.
+    #: Farthest configured gate number for motion detection.
     motion_max_distance_gate: int
 
     #: Array of motion sensitivities for each gate (9 elements, percentage).
     motion_sensitivity: Sequence[int]
 
-    #: Furthest configured gate number for stationary detection.
+    #: Farthest configured gate number for stationary detection.
     standstill_max_distance_gate: int
 
     #: Array of stationary sensitivities for each gate (9 elements, percentage).
@@ -204,10 +204,10 @@ class ReportEngineeringStatus:
 
     """
 
-    #: Furthest configured gate number for motion detection.
+    #: Farthest configured gate number for motion detection.
     motion_max_distance_gate: int
 
-    #: Furthest configured gate number for stationary detection.
+    #: Farthest configured gate number for stationary detection.
     standstill_max_distance_gate: int
 
     #: Array of motion energies for each gate (9 elements, percentage).

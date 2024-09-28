@@ -51,7 +51,7 @@ To install ``aio-ld2410``, simply run the following command:
 
 .. code-block:: console
 
-    $ pip install aio-ld2410
+    python -m pip install aio-ld2410
 
 
 Usage
@@ -78,7 +78,7 @@ Here's how you can start reading sensor reports from a few lines of python:
 
    asyncio.run(main())
 
-To go further please refer to the documentation_.
+For further details, please refer to the documentation_.
 
 .. _documentation: https://aio-ld2410.readthedocs.io/en/latest/
 
