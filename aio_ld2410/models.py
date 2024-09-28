@@ -33,11 +33,11 @@ class AuxiliaryControlStatus:
     default: OutPinLevel
 
 
-class AuxiliaryControlConfig(TypedDict):
+class AuxiliaryControlConfig(TypedDict, total=True):
     """
     Configuration of the auxiliary controls for the ``OUT`` pin.
 
-    This class is used to parse arguments from :meth:`.LD2410.set_auxiliary_controls`.
+    This class is used to parse keyword arguments from :meth:`.LD2410.set_auxiliary_controls`.
 
     See Also:
         - :meth:`.LD2410.set_auxiliary_controls`
@@ -92,12 +92,14 @@ class FirmwareVersion:
         return f'{self.major}.{self.minor:02d}.{self.revision:08x}'
 
 
-class GateSensitivityConfig(TypedDict):
+class GateSensitivityConfig(TypedDict, total=True):
     """
     Set current sensitivity values for a specific gate.
 
+    This class is used to parse keyword arguments from :meth:`.LD2410.set_gate_sensitivity`.
+
     See Also:
-        :meth:`.LD2410.set_gate_sentivity`.
+        :meth:`.LD2410.set_gate_sensitivity`.
 
     """
 
@@ -111,9 +113,11 @@ class GateSensitivityConfig(TypedDict):
     standstill_sensitivity: int  # percent
 
 
-class ParametersConfig(TypedDict):
+class ParametersConfig(TypedDict, total=True):
     """
     Standard configuration parameters.
+
+    This class is used to parse keyword arguments from :meth:`.LD2410.set_parameters`.
 
     See Also:
         :meth:`.LD2410.set_parameters`.
@@ -228,13 +232,14 @@ class ReportStatus:
         - :meth:`.LD2410.get_last_report`
         - :meth:`.LD2410.get_next_report`
         - :meth:`.LD2410.get_reports`
+        - :meth:`.LD2410.set_engineering_mode`
 
     """
 
     #: Basic part of the report (always set).
     basic: ReportBasicStatus
 
-    #: Engineering part of the report (only in engineering mode), ``None`` otherwise.
+    #: Engineering part of the report (only in engineering mode), :obj:`None` otherwise.
     engineering: ReportEngineeringStatus | None
 
 

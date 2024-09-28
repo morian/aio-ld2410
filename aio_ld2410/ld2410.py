@@ -108,8 +108,14 @@ class LD2410:
         Args:
             device: path to the device to use.
             baudrate: serial baud rate to use.
-            command_timeout: how long to wait for a command reply (in seconds)
+            command_timeout: how long to wait for a command reply (in seconds),
+                :obj:`None` to disable.
             read_bufsize: max buffer size used by the underlying :class:`asyncio.StreamReader`.
+
+        Important:
+            The command timeout affects all command requests when enabled.
+            If the device doesn't reply within this period, an ``asyncio.TimoutError``
+            is raised (which is equivalent to a :exc:`TimeoutError`) on Python 3.10+.
 
         """
         self._baudrate = baudrate
@@ -200,7 +206,7 @@ class LD2410:
         The reader task is also canceled.
 
         Returns:
-            `False` to let any exception flow through the call stack.
+            :obj:`False` to let any exception flow through the call stack.
 
         """
         context = self._context
@@ -263,7 +269,15 @@ class LD2410:
         """
         Send any kind of command to the device.
 
-        Wait and dequeue the corresponding reply.
+        This method waits until the reply arrives (or a timeout occurs).
+
+        Args:
+            code: command opcode
+            args: a map of arguments or :obj:`None`
+
+        Returns:
+            The reply container from construct.
+
         """
         command = Command.build({'code': code, 'data': args})
         async with self._request_lock:
@@ -381,10 +395,10 @@ class LD2410:
         Get the gate distance resolution (in centimeter).
 
         Caution:
-            This command seems to be available for a few devices / firmwares.
+            This command may not be available on your variant or with your firmware.
 
         See Also:
-            The internal :class:`.ResolutionIndex`.
+            The internal :class:`.ResolutionIndex` for a list of available resolutions.
 
         Returns:
             The distance resolution in centimeters.
@@ -405,38 +419,131 @@ class LD2410:
 
     @configuration
     async def get_firmware_version(self) -> FirmwareVersion:
-        """Get the current firmware version."""
+        """
+        Get the device's firmware version.
+
+        Returns:
+            The firmware version structure.
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandStatusError: when the device replies with a failed status.
+
+        """
         resp = await self._request(CommandCode.FIRMWARE_VERSION)
         return container_to_model(FirmwareVersion, resp.data)
 
     def get_last_report(self) -> ReportStatus | None:
-        """Get the latest report available, if any."""
+        """
+        Get the latest report received from the device, if any.
+
+        Note:
+            This report can be very outdated if you spent too much time in configuration mode.
+
+        Tip:
+            This method does not way for anything and it not asynchronous.
+
+        Returns:
+            The last report we received from the device.
+
+        """
         return copy.deepcopy(self._report)
 
-    @configuration
-    async def get_parameters(self) -> ParametersStatus:
-        """Read general parameters."""
-        resp = await self._request(CommandCode.PARAMETERS_READ)
-        return container_to_model(ParametersStatus, resp.data)
-
     async def get_next_report(self) -> ReportStatus:
-        """Wait and get the next available report."""
+        """
+        Wait and get the next available report.
+
+        Caution:
+            Must be called outside of the configuration context as no report is being
+            generated in configuration mode.
+
+        Returns:
+            The next report we just received from the device or :obj:`None` if there was none.
+
+        """
         async with self._report_condition:
             await self._report_condition.wait()
             report = cast(ReportStatus, self._report)
         return copy.deepcopy(report)
 
+    @configuration
+    async def get_parameters(self) -> ParametersStatus:
+        """
+        Get the standard configuration parameters.
+
+        Returns:
+            The currently applied standard parameters.
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandStatusError: when the device replies with a failed status.
+
+        """
+        resp = await self._request(CommandCode.PARAMETERS_READ)
+        return container_to_model(ParametersStatus, resp.data)
+
     async def get_reports(self) -> AsyncIterator[ReportStatus]:
-        """Get reports as an asynchronous iterator."""
+        """
+        Get reports as they arrive with an asynchronous iterator.
+
+        This is just a simple loop around :meth:`get_next_report`.
+
+        Caution:
+            Must be called outside of the configuration context as no report is being
+            generated in configuration mode.
+
+        Returns:
+            An asynchronous iterator for :class:`.ReportStatus`.
+
+        """
         while True:
             yield await self.get_next_report()
 
     @configuration
     async def reset_to_factory(self) -> None:
         """
-        Reset the module to its factory settings.
+        Reset the device to its factory settings.
 
-        This command is effective after a module restart.
+        Tell the device to reset all its parameters to factory settings.
+
+
+        Hint:
+            In factory settings, you get the following parameters:
+
+            ============================== ======================
+            Max moving distance gate                        8
+            Max stationary distance gate                    8
+            No-one duration                                 5 sec
+            Serial port baud rate                      256000 Hz
+            Bluetooth mode                                enabled
+            Bluetooth password                             HiLink
+            Distance resolution                             75 cm
+            Auxiliary control                            disabled
+            Auxiliary threshold                               128
+            Auxiliary default                                 LOW
+            ============================== ======================
+
+            =========== ================== ======================
+            Gate number Motion sensitivity Stationary sensitivity
+            =========== ================== ======================
+                      0                50%                    N/A
+                      1                50%                    N/A
+                      2                40%                    40%
+                      3                30%                    40%
+                      4                20%                    30%
+                      5                15%                    30%
+                      6                15%                    20%
+                      7                15%                    20%
+                      8                15%                    20%
+            =========== ================== ======================
+
+        Important:
+            This command requires a module restart to be effective!
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandStatusError: when the device replies with a failed status.
+
         """
         await self._request(CommandCode.FACTORY_RESET)
 
@@ -473,6 +580,17 @@ class LD2410:
         with the integrated photo sensor.
 
 
+        Use example::
+
+            async with LD2410('/dev/ttyUSB0') as dev:
+                async with dev.configure():
+                    await dev.set_auxiliary_controls(
+                        control=AuxiliaryControl.UNDER_THRESHOLD,
+                        default=OutPinLevel.LOW,
+                        threshold=120,
+                    )
+
+
         Hint:
             See :class:`.AuxiliaryControlConfig` for keyword arguments.
 
@@ -481,21 +599,35 @@ class LD2410:
 
         Raises:
             CommandContextError: when called outside of the configuration context.
+            CommandParamError: when a mandatory keyword argument is missing.
             CommandStatusError: when the device replies with a failed status.
 
         """
-        await self._request(
-            CommandCode.AUXILIARY_CONTROL_SET,
-            AuxiliaryControlConfig(**kwargs),
-        )
+        data = AuxiliaryControlConfig(**kwargs)
+        missing = AuxiliaryControlConfig.__required_keys__.difference(data.keys())
+        if missing:
+            raise CommandParamError(f'Missing parameters: {set(missing)}')
+        await self._request(CommandCode.AUXILIARY_CONTROL_SET, data)
 
     @configuration
     async def set_baudrate(self, baudrate: int) -> None:
         """
-        Set the serial baud rate to operate.
+        Set the serial port baud rate.
 
-        Only baud rates from `BaudRateIndex` are acceptable.
-        This command is effective after a module restart.
+        Args:
+            baudrate: the baud rate you want to apply (see :class:`.BaudRateIndex`).
+
+        See Also:
+            The internal :class:`.BaudRateIndex` for a list of available baud rates.
+
+        Important:
+            This command requires a module restart to be effective!
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandParamError: when the provided baud rate is not suitable.
+            CommandStatusError: when the device replies with a failed status.
+
         """
         try:
             index = BaudRateIndex.from_integer(baudrate)
@@ -506,16 +638,38 @@ class LD2410:
 
     @configuration
     async def set_bluetooth_mode(self, enabled: bool) -> None:
-        """Set device bluetooth mode."""
+        """
+        Enable of disable bluetooth mode.
+
+        Args:
+            enabled: whether bluetooth should be enabled on the device.
+
+        Important:
+            This command requires a module restart to be effective!
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandStatusError: when the device replies with a failed status.
+
+        """
         await self._request(CommandCode.BLUETOOTH_SET, {'enabled': enabled})
 
     @configuration
     async def set_bluetooth_password(self, password: str) -> None:
         """
-        Set device bluetooth password.
+        Set the device's bluetooth password.
 
-        This command seems to be available for a few devices / firmwares.
-        The password must have no more than 6 ASCII characters.
+        Args:
+            password: must have less than 7 ASCII characters.
+
+        Caution:
+            This command may not be available on your variant or with your firmware.
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandParamError: when the password is not ASCII or has more than 6 chars.
+            CommandStatusError: when the device replies with a failed status.
+
         """
         if len(password) > 6 or not password.isascii():
             raise CommandParamError(
@@ -529,20 +683,20 @@ class LD2410:
         Set the gate distance resolution (in centimeter).
 
         Args:
-            resolution: per-gate distance (the only valid values are 20 and 75 centimeters).
+            resolution: per-gate distance (the only valid values are 20 and 75 cm).
 
         Caution:
             This command seems to be available for a few devices / firmwares.
 
-        Warning:
+        Important:
             This command requires a module restart to be effective!
 
         See Also:
-            The internal :class:`.ResolutionIndex`.
+            The internal :class:`.ResolutionIndex` for a list of available resolutions.
 
         Raises:
             CommandContextError: when called outside of the configuration context.
-            CommandParamError: when the provided resolution does not match any known value.
+            CommandParamError: when the provided resolution is not suitable.
             CommandStatusError: when the device replies with a failed status.
 
         """
@@ -555,17 +709,101 @@ class LD2410:
 
     @configuration
     async def set_engineering_mode(self, enabled: bool) -> None:
-        """Set device in engineering mode."""
+        """
+        Enable or disable engineering reports.
+
+        Args:
+            enabled: whether :class:`.ReportStatus` should contain an advanced report.
+
+        Caution:
+            The engineering mode is lost after a device restart.
+
+        See Also:
+            - :class:`.ReportStatus` for the complete description of reports.
+            - :class:`.ReportEngineeringStatus` for the engineering part.
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandStatusError: when the device replies with a failed status.
+
+        """
         code = CommandCode.ENGINEERING_ENABLE if enabled else CommandCode.ENGINEERING_DISABLE
         await self._request(code)
 
     @configuration
     async def set_parameters(self, **kwargs: Unpack[ParametersConfig]) -> None:
-        """Set general parameters."""
-        # This step is needed to ensure argument correctness.
-        await self._request(CommandCode.PARAMETERS_WRITE, ParametersConfig(**kwargs))
+        """
+        Set the standard configuration parameters.
+
+        This method only sets basic configuration parameters.
+
+
+        Use example::
+
+            async with LD2410('/dev/ttyUSB0') as dev:
+                async with dev.configure():
+                    await dev.set_parameters(
+                        motion_max_distance_gate=7,
+                        standstill_max_distance_gate=7,
+                        no_one_idle_duration=5,
+                    )
+
+
+        See Also:
+            :class:`set_gate_sensitivity` to set additional parameters.
+
+        Hint:
+            See :class:`.ParametersConfig` for keyword arguments.
+
+        Tip:
+            These parameters apply immediately and are persistent across restarts.
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandParamError: when a mandatory keyword argument is missing.
+            CommandStatusError: when the device replies with a failed status.
+
+        """
+        data = ParametersConfig(**kwargs)
+        missing = ParametersConfig.__required_keys__.difference(data.keys())
+        if missing:
+            raise CommandParamError(f'Missing parameters: {set(missing)}')
+        await self._request(CommandCode.PARAMETERS_WRITE, data)
 
     @configuration
-    async def set_gate_sentivity(self, **kwargs: Unpack[GateSensitivityConfig]) -> None:
-        """Set the sensor sensitivity."""
-        await self._request(CommandCode.GATE_SENSITIVITY_SET, GateSensitivityConfig(**kwargs))
+    async def set_gate_sensitivity(self, **kwargs: Unpack[GateSensitivityConfig]) -> None:
+        """
+        Set gate sensitivities.
+
+        This command is used to configure gate sensitivity to one or to all gate.
+
+
+        Use example::
+
+            async with LD2410('/dev/ttyUSB0') as dev:
+                async with dev.configure():
+                    # Set sensitivities for gate 4.
+                    await dev.set_gate_sensitivity(
+                        distance_gate=4,
+                        motion_sensitivity=25,
+                        standstill_sensitivity=20,
+                    )
+
+
+        Hint:
+            See :class:`.GateSensitivityConfig` for keyword arguments.
+
+        Tip:
+            These parameters apply immediately and are persistent across restarts.
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandParamError: when a mandatory keyword argument is missing.
+            CommandStatusError: when the device replies with a failed status.
+
+        """
+        data = GateSensitivityConfig(**kwargs)
+        missing = GateSensitivityConfig.__required_keys__.difference(data.keys())
+        if missing:
+            raise CommandParamError(f'Missing parameters: {set(missing)}')
+        await self._request(CommandCode.GATE_SENSITIVITY_SET, data)

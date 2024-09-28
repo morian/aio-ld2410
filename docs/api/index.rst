@@ -5,7 +5,7 @@ API reference
 
 
 .. toctree::
-   :titlesonly:
+   :maxdepth: 2
 
    client
    datastructures

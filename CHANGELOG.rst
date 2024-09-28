@@ -21,6 +21,14 @@ Changed
 - Reworked :mod:`.exceptions` to make things more straightforward
 - Reworked :class:`stream.FrameStream` with a real iterator
 
+Fixed
+-----
+- Now checking arguments to the following methods:
+   - :meth:`.LD2410.set_auxiliary_controls`
+   - :meth:`.LD2410.set_gate_sensitivity`
+   - :meth:`.LD2410.set_parameters`
+- Renamed ``LD2410.set_gate_sentivity`` to `.LD2410.set_gate_sensitivity`
+
 
 0.1.0 (2024-09-25)
 ==================
