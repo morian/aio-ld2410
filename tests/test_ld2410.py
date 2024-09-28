@@ -205,24 +205,24 @@ class TestLD2410:
             await device.reset_to_factory()
 
     @pytest.mark.parametrize(
-        ('moving_max', 'stopped_max', 'presence_timeout'),
+        ('moving_max', 'static_max', 'presence_timeout'),
         [
             (8, 8, 2),
             (4, 4, 764),
             (264, 264, 65537),
         ],
     )
-    async def test_parameters(self, device, moving_max, stopped_max, presence_timeout):
+    async def test_parameters(self, device, moving_max, static_max, presence_timeout):
         """Check that we can set parameters."""
         async with device.configure():
             await device.set_parameters(
                 moving_max_distance_gate=moving_max,
-                stopped_max_distance_gate=stopped_max,
+                static_max_distance_gate=static_max,
                 presence_timeout=presence_timeout,
             )
             params = await device.get_parameters()
             assert params.moving_max_distance_gate == moving_max & 0xFF
-            assert params.stopped_max_distance_gate == stopped_max & 0xFF
+            assert params.static_max_distance_gate == static_max & 0xFF
             assert params.presence_timeout == presence_timeout & 0xFFFF
 
     async def test_parameters_missing_kwarg(self, device):
@@ -230,7 +230,7 @@ class TestLD2410:
         async with device.configure():
             with pytest.raises(CommandParamError, match='Missing parameters'):
                 await device.set_parameters(
-                    stopped_max_distance_gate=6,
+                    static_max_distance_gate=6,
                     presence_timeout=5,
                 )
 
@@ -239,11 +239,11 @@ class TestLD2410:
         """Check sensitivity when set to individual gates."""
         async with device.configure():
             moving = 100 - 2 * gate
-            stopped = 100 - 3 * gate
+            static = 100 - 3 * gate
             await device.set_gate_sensitivity(
                 distance_gate=gate,
                 moving_threshold=moving,
-                stopped_threshold=stopped,
+                static_threshold=static,
             )
             params = await device.get_parameters()
             assert params.moving_threshold[gate] == moving
@@ -256,25 +256,25 @@ class TestLD2410:
                 await device.set_gate_sensitivity(distance_gate=4, moving_threshold=90)
 
     @pytest.mark.parametrize(
-        ('moving', 'stopped'),
+        ('moving', 'static'),
         [
             (64, 64),
             (102, 102),
             (300, 300),
         ],
     )
-    async def test_gate_sensitivity_set_broadcast(self, device, moving, stopped):
+    async def test_gate_sensitivity_set_broadcast(self, device, moving, static):
         """Check sensitivity when set through broadcast."""
         async with device.configure():
             await device.set_gate_sensitivity(
                 distance_gate=0xFFFF,
                 moving_threshold=moving,
-                stopped_threshold=stopped,
+                static_threshold=static,
             )
             params = await device.get_parameters()
             for i in range(params.max_distance_gate + 1):
                 assert params.moving_threshold[i] == moving & 0xFF
-                assert params.stopped_threshold[i] == stopped & 0xFF
+                assert params.static_threshold[i] == static & 0xFF
 
     @pytest.mark.parametrize('gate', [9, 100, 657, 65549])
     async def test_gate_sensitivity_error(self, device, gate):
@@ -284,7 +284,7 @@ class TestLD2410:
                 await device.set_gate_sensitivity(
                     distance_gate=gate,
                     moving_threshold=10,
-                    stopped_threshold=10,
+                    static_threshold=10,
                 )
 
     async def test_module_restart_with_context_close(self, device):

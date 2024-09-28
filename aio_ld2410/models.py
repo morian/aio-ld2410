@@ -109,8 +109,8 @@ class GateSensitivityConfig(TypedDict, total=True):
     #: Moving energy threshold (in percent, from 0 to 100).
     moving_threshold: int  # percent
 
-    #: Stationary energy threshold (in percent, from 0 to 100).
-    stopped_threshold: int  # percent
+    #: Static energy threshold (in percent, from 0 to 100).
+    static_threshold: int  # percent
 
 
 class ParametersConfig(TypedDict, total=True):
@@ -127,8 +127,8 @@ class ParametersConfig(TypedDict, total=True):
     #: Farthest gate to consider for moving detection (from 2 to 8).
     moving_max_distance_gate: int
 
-    #: Farthest gate to consider for stationary detection (from 2 to 8).
-    stopped_max_distance_gate: int
+    #: Farthest gate to consider for static detection (from 2 to 8).
+    static_max_distance_gate: int
 
     #: How long to keep detecting a presence after the person moved away (0 to 65535 seconds).
     presence_timeout: int
@@ -154,11 +154,11 @@ class ParametersStatus:
     #: Array of moving energy thresholds for each gate (9 elements, percentage).
     moving_threshold: Sequence[int]
 
-    #: Farthest configured gate number for stationary detection.
-    stopped_max_distance_gate: int
+    #: Farthest configured gate number for static detection.
+    static_max_distance_gate: int
 
-    #: Array of stationary energy thresholds for each gate (9 elements, percentage).
-    stopped_threshold: Sequence[int]
+    #: Array of static energy thresholds for each gate (9 elements, percentage).
+    static_threshold: Sequence[int]
 
     #: How long the sensor keeps detecting a presence after the person moved away (seconds).
     presence_timeout: int
@@ -180,14 +180,14 @@ class ReportBasicStatus:
     #: When detected moving, at which distance (in centimeters).
     moving_distance: int
 
-    #: Moving energy of the target (in percent, from 0 to 100).
+    #: Energy of the moving target (in percent, from 0 to 100).
     moving_energy: int
 
-    #: When detected stationary, at which distance (in centimeters).
-    stopped_distance: int
+    #: When detected static, at which distance (in centimeters).
+    static_distance: int
 
-    #: Stationary energy of the target (in percent, from 0 to 100).
-    stopped_energy: int  # in percent
+    #: Energy of the static target (in percent, from 0 to 100).
+    static_energy: int  # in percent
 
     #: Detection distance (in centimeters).
     detection_distance: int
@@ -207,14 +207,14 @@ class ReportEngineeringStatus:
     #: Farthest configured gate number for moving detection.
     moving_max_distance_gate: int
 
-    #: Farthest configured gate number for stationary detection.
-    stopped_max_distance_gate: int
+    #: Farthest configured gate number for static detection.
+    static_max_distance_gate: int
 
     #: Array of moving energies for each gate (9 elements, percentage).
     moving_gate_energy: Sequence[int]
 
-    #: Array of stationary energies for each gate (9 elements, percentage).
-    stopped_gate_energy: Sequence[int]
+    #: Array of static energies for each gate (9 elements, percentage).
+    static_gate_energy: Sequence[int]
 
     #: Photo-sensor value (from 0 to 255).
     photosensitive_value: int

@@ -91,12 +91,12 @@ This code produces the following output:
    $ ./examples/read_simple_configuration.py
    Max distance gate           8
    Max motion detection gate   8
-   Max stopped detection gate  8
+   Max static detection gate   8
    Presence timeout            5
    Detection thresholds:
      Gate       0 |   1 |   2 |   3 |   4 |   5 |   6 |   7 |   8
      Moving    50 |  50 |  40 |  30 |  20 |  15 |  15 |  15 |  15
-     Stopped    0 |   0 |  40 |  40 |  30 |  30 |  20 |  20 |  20
+     Static     0 |   0 |  40 |  40 |  30 |  30 |  20 |  20 |  20
 
 
 Distance resolution
@@ -126,7 +126,7 @@ General configuration
 ^^^^^^^^^^^^^^^^^^^^^
 
 The following example simply sets the maximum detection gate for moving targets to 4
-(3 meters) and the maximum detection gate for stopped targets to 6 (4.5 meters).
+(3 meters) and the maximum detection gate for static targets to 6 (4.5 meters).
 
 It means that detected targets are either close to the sensor and moving, or can be
 farther away but standing still.
@@ -153,12 +153,12 @@ The result of both scripts can be read again with read_simple_configuration_:
    $ ./examples/read_simple_configuration.py
    Max distance gate           8
    Max motion detection gate   4
-   Max stopped detection gate  6
+   Max static detection gate   6
    Presence timeout            10
    Detection thresholds:
-   Gate       0 |   1 |   2 |   3 |   4 |   5 |   6 |   7 |   8
-   Moving    50 |  50 |  40 |  40 |  35 |  30 |  15 |  15 |  15
-   Stopped    0 |   0 |  40 |  35 |  30 |  25 |  20 |  20 |  20
+     Gate       0 |   1 |   2 |   3 |   4 |   5 |   6 |   7 |   8
+     Moving    50 |  50 |  40 |  40 |  35 |  30 |  15 |  15 |  15
+     Static     0 |   0 |  40 |  35 |  30 |  25 |  20 |  20 |  20
 
 
 Set distance resolution

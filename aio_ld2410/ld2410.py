@@ -527,7 +527,7 @@ class LD2410:
 
             ============================= ==============
             Max moving distance gate              8
-            Max stationary distance gate          8
+            Max static distance gate              8
             No-one duration                       5 sec
             Serial port baud rate            256000 Hz
             Bluetooth mode                  enabled
@@ -539,7 +539,7 @@ class LD2410:
             ============================= ==============
 
             ====== ================== ===================
-             Gate   Moving threshold   Stopped threshold
+             Gate   Moving threshold    Static threshold
             ====== ================== ===================
                  0                50%                 N/A
                  1                50%                 N/A
@@ -766,7 +766,7 @@ class LD2410:
                 async with dev.configure():
                     await dev.set_parameters(
                         moving_max_distance_gate=7,
-                        stopped_max_distance_gate=7,
+                        static_max_distance_gate=7,
                         presence_timeout=5,
                     )
 
@@ -810,7 +810,7 @@ class LD2410:
                     await dev.set_gate_sensitivity(
                         distance_gate=4,
                         moving_threshold=25,
-                        stopped_threshold=20,
+                        static_threshold=20,
                     )
 
 

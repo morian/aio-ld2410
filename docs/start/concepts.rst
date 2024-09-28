@@ -4,8 +4,8 @@ Concepts
 What is a HLK-LD2410?
 ---------------------
 
-Common features
-^^^^^^^^^^^^^^^
+Main features
+^^^^^^^^^^^^^
 
 ``LD2410`` is a high-sensitivity 24GHz human presence sensor developed by `Hi-Link Electronics`_.
 The farthest sensing distance can reach 6 meters, and the default distance resolution is 75cm.
@@ -89,14 +89,14 @@ Energy and sensitivity
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Each gate is configured individually with two energy thresholds, one for moving targets,
-and on for stopped targets. When the reading energy value is above the configured threshold,
+and on for static targets. When the reading energy value is above the configured threshold,
 a target is detected (either as moving or standing still).
 
 Both reported energies and threshold have values ranging from 0 to 100.
 Here is the list of default energy thresholds:
 
 ====== ================== ===================
- Gate   Moving threshold   Stopped threshold
+ Gate   Moving threshold   Static threshold
 ====== ================== ===================
      0              50%                 N/A
      1              50%                 N/A
@@ -110,8 +110,8 @@ Here is the list of default energy thresholds:
 ====== ================== ===================
 
 
-Engineering mode & Configuration mode
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Engineering & Configuration mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. currentmodule:: aio_ld2410
 

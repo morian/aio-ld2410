@@ -130,8 +130,8 @@ class EmulatedDevice:
             target_status=target_status,
             moving_distance=randrange(0, max_range_cm),
             moving_energy=randrange(0, 101),
-            stopped_distance=randrange(0, max_range_cm),
-            stopped_energy=randrange(0, 101),
+            static_distance=randrange(0, max_range_cm),
+            static_energy=randrange(0, 101),
             detection_distance=randrange(0, max_range_cm),
         )
         engineering = None
@@ -140,9 +140,9 @@ class EmulatedDevice:
             gate_range = params.max_distance_gate + 1
             engineering = ReportEngineeringStatus(
                 moving_max_distance_gate=params.moving_max_distance_gate,
-                stopped_max_distance_gate=params.stopped_max_distance_gate,
+                static_max_distance_gate=params.static_max_distance_gate,
                 moving_gate_energy=[randrange(0, 101) for _ in range(gate_range)],
-                stopped_gate_energy=[randrange(0, 101) for _ in range(gate_range)],
+                static_gate_energy=[randrange(0, 101) for _ in range(gate_range)],
                 photosensitive_value=randrange(0, 256),
                 out_pin_status=OutPinLevel(randrange(0, 2)),
             )
@@ -234,7 +234,7 @@ class EmulatedDevice:
         # Upper bits are discarded as observed on the real device.
         # It seems like the gate number can be set beyond the real gate....
         params.moving_max_distance_gate = data.moving_max_distance_gate & 0xFF
-        params.stopped_max_distance_gate = data.stopped_max_distance_gate & 0xFF
+        params.static_max_distance_gate = data.static_max_distance_gate & 0xFF
         params.presence_timeout = data.presence_timeout & 0xFFFF
         return self._build_reply(command.code)
 
@@ -253,7 +253,7 @@ class EmulatedDevice:
         indices = range(params.max_distance_gate + 1) if index == 0xFFFF else [index]
         for i in indices:
             params.moving_threshold[i] = data.moving_threshold & 0xFF
-            params.stopped_threshold[i] = data.stopped_threshold & 0xFF
+            params.static_threshold[i] = data.static_threshold & 0xFF
         return self._build_reply(command.code)
 
     @need_configuration_mode

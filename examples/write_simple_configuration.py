@@ -8,7 +8,7 @@ async def main():
         async with device.configure():
             await device.set_parameters(
                 moving_max_distance_gate=4,
-                stopped_max_distance_gate=6,
+                static_max_distance_gate=6,
                 presence_timeout=10,
             )
 

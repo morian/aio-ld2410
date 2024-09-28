@@ -14,7 +14,7 @@ The format is based on `Keep a Changelog`_ and this project adheres to `Semantic
 
 Added
 -----
-- Add a lot of documentation
+- Add a whole lot of documentation
 
 Changed
 -------

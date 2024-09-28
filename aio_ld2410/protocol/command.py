@@ -109,9 +109,9 @@ class ResolutionIndex(IntEnum):
     """
     All possible gate resolution.
 
-    The sensors divides the area in some fixed number of ``gates`` (typically 8).
-    Gates have a default resolution of 75 centimeters, but some models / firmwares
-    allow for more precise resolutions.
+    The sensors divides the area in some fixed number of zones called ``gates`` (typically 9).
+    Gates have a default resolution of 75 centimeters, but some models / firmwares allow for
+    more precise resolutions.
 
     See Also:
         - :meth:`.LD2410.get_distance_resolution`
@@ -119,8 +119,8 @@ class ResolutionIndex(IntEnum):
 
     """
 
-    RESOLUTION_75CM = 0x00  #: Each gate covers 20 centimeters.
-    RESOLUTION_20CM = 0x01  #: Each gate covers 75 centimeters.
+    RESOLUTION_75CM = 0x00  #: Each gate covers 75 centimeters.
+    RESOLUTION_20CM = 0x01  #: Each gate covers 20 centimeters.
 
 
 _CommandSwitch = Switch(
@@ -130,8 +130,8 @@ _CommandSwitch = Switch(
         CommandCode.PARAMETERS_WRITE: Struct(
             Const(0, Int16ul),  # Maximum moving distance gate word
             'moving_max_distance_gate' / Int32ul,  # Range 2-8 (gate)
-            Const(1, Int16ul),  # Maximum stopped distance gate word
-            'stopped_max_distance_gate' / Int32ul,  # Range 2-8 (gate)
+            Const(1, Int16ul),  # Maximum static distance gate word
+            'static_max_distance_gate' / Int32ul,  # Range 2-8 (gate)
             Const(2, Int16ul),  # No one duration
             'presence_timeout' / Int32ul,  # Range 0-65535 (seconds)
         ),
@@ -145,8 +145,8 @@ _CommandSwitch = Switch(
             'distance_gate' / Int32ul,  # Range 1-8 or 0xFFFF for all gates
             Const(1, Int16ul),  # Moving sensitivity word
             'moving_threshold' / Int32ul,  # Range 0-100 (percent)
-            Const(2, Int16ul),  # Stopped sensitivity word
-            'stopped_threshold' / Int32ul,  # Range 0-100 (percent)
+            Const(2, Int16ul),  # Static sensitivity word
+            'static_threshold' / Int32ul,  # Range 0-100 (percent)
         ),
         CommandCode.FIRMWARE_VERSION: Pass,
         # The following configuration takes effect after module restart.
@@ -197,9 +197,9 @@ _ReplySwitch = Switch(
             Const(0xAA, Byte),  # Header
             'max_distance_gate' / Byte,  # The farthest gate this chip can handle (0x08)
             'moving_max_distance_gate' / Byte,  # Configured max moving gate
-            'stopped_max_distance_gate' / Byte,  # Configured max stopped gate
+            'static_max_distance_gate' / Byte,  # Configured max static gate
             'moving_threshold' / Array(9, Byte),  # percent
-            'stopped_threshold' / Array(9, Byte),  # percent
+            'static_threshold' / Array(9, Byte),  # percent
             'presence_timeout' / Int16ul,  # Range 0-65535 (seconds)
         ),
         CommandCode.ENGINEERING_ENABLE: Pass,

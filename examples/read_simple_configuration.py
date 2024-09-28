@@ -14,12 +14,12 @@ async def main():
 
     print(f'Max distance gate           {cfg.max_distance_gate}')
     print(f'Max motion detection gate   {cfg.moving_max_distance_gate}')
-    print(f'Max stopped detection gate  {cfg.stopped_max_distance_gate}')
+    print(f'Max static detection gate   {cfg.static_max_distance_gate}')
     print(f'Presence timeout            {cfg.presence_timeout}')
     print('Detection thresholds:')
-    print('  Gate     ' + format_values(range(cfg.max_distance_gate + 1)))
-    print('  Moving   ' + format_values(cfg.moving_threshold))
-    print('  Stopped  ' + format_values(cfg.stopped_threshold))
+    print('  Gate    ' + format_values(range(cfg.max_distance_gate + 1)))
+    print('  Moving  ' + format_values(cfg.moving_threshold))
+    print('  Static  ' + format_values(cfg.static_threshold))
 
 if __name__ == '__main__':
     asyncio.run(main())

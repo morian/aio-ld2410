@@ -32,8 +32,8 @@ _DefaultParameters = ParametersStatus(
     max_distance_gate=8,
     moving_max_distance_gate=8,
     moving_threshold=[50, 50, 40, 30, 20, 15, 15, 15, 15],
-    stopped_max_distance_gate=8,
-    stopped_threshold=[0, 0, 40, 40, 30, 30, 20, 20, 20],
+    static_max_distance_gate=8,
+    static_threshold=[0, 0, 40, 40, 30, 30, 20, 20, 20],
     presence_timeout=5,
 )
 _DefaultLight = LightControlStatus(
