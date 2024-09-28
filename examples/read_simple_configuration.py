@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+import asyncio
+from aio_ld2410 import LD2410
+from collections.abc import Iterable
+
+def format_values(values: Iterable[int]) -> str:
+    return ' | '.join(map(lambda val: f'{val:3d}', values))
+
+async def main():
+    async with LD2410('/dev/ttyUSB0') as device:
+        async with device.configure():
+            cfg = await device.get_parameters()
+
+    print(f'Max distance gate           {cfg.max_distance_gate}')
+    print(f'Max motion detection gate   {cfg.moving_max_distance_gate}')
+    print(f'Max stopped detection gate  {cfg.stopped_max_distance_gate}')
+    print(f'Presence timeout            {cfg.presence_timeout}')
+    print('Detection thresholds:')
+    print('  Gate     ' + format_values(range(cfg.max_distance_gate + 1)))
+    print('  Moving   ' + format_values(cfg.moving_threshold))
+    print('  Stopped  ' + format_values(cfg.stopped_threshold))
+
+if __name__ == '__main__':
+    asyncio.run(main())

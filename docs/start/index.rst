@@ -17,6 +17,8 @@ Requirements
 :ref:`Dependencies` are documented on a separate pages.
 
 
+.. _installation:
+
 Installation
 ------------
 
@@ -49,4 +51,4 @@ Guided Tour
 .. toctree::
 
    concepts
-   configuration
+   tutorial

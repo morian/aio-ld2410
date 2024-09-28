@@ -230,7 +230,7 @@ class LD2410:
         """Open a serial connection for this device."""
         # This cannot be tested and is superseded during tests.
         return await open_serial_connection(
-            baud_rate=self._baud_rate,
+            baudrate=self._baud_rate,
             limit=self._read_bufsize,
             url=self._device,
         )  # pragma: no cover
@@ -566,6 +566,10 @@ class LD2410:
 
         On my tests it takes at least 1100ms for the module to be responsive again.
 
+        Important:
+            If you chose close the current configuration context using ``close_config_context``
+            you will have to exit the context by yourself before you can issue new commands.
+
         Keyword Args:
             close_config_context: close the surrounding configuration context by raising a
                 :exc:`.ModuleRestartedError` (see :meth:`configure`).
@@ -754,7 +758,7 @@ class LD2410:
             See :class:`.ParametersConfig` for keyword arguments.
 
         Tip:
-            These parameters apply immediately and are persistent across restarts.
+            These parameters apply immediately and are persistent across module restart.
 
         USE EXAMPLE::
 
@@ -794,7 +798,9 @@ class LD2410:
             See :class:`.GateSensitivityConfig` for keyword arguments.
 
         Tip:
-            These parameters apply immediately and are persistent across restarts.
+            - These parameters apply immediately and are persistent across module restart.
+            - ``distance_gate`` keyword argument can be set to ``0xFFFF`` to broadcast
+              to all gates.
 
         USE EXAMPLE::
 
