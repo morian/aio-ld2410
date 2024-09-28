@@ -5,7 +5,7 @@ from aio_ld2410 import LD2410
 from collections.abc import Iterable
 
 def format_values(values: Iterable[int]) -> str:
-    return ' | '.join(map(lambda val: f'{val:3d}', values))
+    return ' | '.join(map('{:3d}'.format, values))
 
 async def main():
     async with LD2410('/dev/ttyUSB0') as device:

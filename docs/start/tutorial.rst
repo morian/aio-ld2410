@@ -187,4 +187,42 @@ commands to the device (as it is restarting).
 Reading reports
 ---------------
 
+Reports are push by the device to the serial link regularly and contain detection results.
+Advanced reports cat be requested using the engineering mode, which will not be covered in
+this tutorial (see :meth:`LD2410.set_engineering_mode` and :class:`ReportEngineeringStatus`).
 
+Three methods are provided to get the same thing, reports:
+- :meth:`LD2410.get_last_report` to get the latest received report immediately
+- :meth:`LD2410.get_next_report` to wait and get the next available report
+- :meth:`LD2410.get_reports` to get reports in an asynchronous iterator
+
+Note that reports are not generated while the configuration mode is active.
+
+The following example runs with the already configured value and reports static and moving
+targets as they arrive. Run this and hang around in front of the sensor to see changes.
+
+.. literalinclude:: ../../examples/read_basic_reports.py
+   :caption: examples/read_basic_reports.py
+   :linenos:
+
+And of course the output result:
+
+.. code-block:: console
+
+   $ ./examples/read_basic_reports.py
+     STATIC > dist  37 (energy  56) | MOVING > dist  27 (energy  71) | DETECT > dist  33
+     STATIC > dist  27 (energy  56) | MOVING > dist  34 (energy  45) | DETECT > dist  32
+     STATIC > dist  34 (energy  54) |                                | DETECT > dist  32
+     STATIC > dist  34 (energy  54) | MOVING > dist  38 (energy  41) | DETECT > dist  31
+     STATIC > dist  38 (energy  53) | MOVING > dist  41 (energy  41) | DETECT > dist  32
+     STATIC > dist  41 (energy  55) | MOVING > dist  47 (energy  71) | DETECT > dist  32
+     STATIC > dist  47 (energy  56) |                                | DETECT > dist  33
+     STATIC > dist  47 (energy  56) |                                | DETECT > dist  34
+     STATIC > dist  47 (energy  57) |                                | DETECT > dist  36
+     STATIC > dist  47 (energy  57) |                                | DETECT > dist  36
+
+
+Depending on your use case, you might want to change the configuration parameters and run
+this script again to find suitable values.
+
+This tutorial is now complete, to go further consider taking a look at the :ref:`reference`.
