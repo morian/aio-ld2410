@@ -68,7 +68,7 @@ class FrameStream:
         return count
 
     def __iter__(self) -> Iterator[ConstructFrame]:
-        """Iterate over full frames from the intenal buffer."""
+        """Iterate over full frames from the internal buffer."""
         parsing = True
 
         while parsing:
@@ -108,5 +108,5 @@ class FrameStream:
                     # No header in sight, stop parsing.
                     parsing = False
             elif not remain:
-                # Discard processed bytes when nothing remaing.
+                # Discard processed bytes when nothing remains.
                 self._buffer.truncate()

@@ -3,12 +3,24 @@ Client
 
 .. currentmodule:: aio_ld2410
 
-.. autoclass:: LD2410
-   :no-show-inheritance:
+.. py:class:: LD2410
+   :no-typesetting:
+
+
+:class:`LD2410` is the :mod:`asyncio` serial client from :mod:`aio_ld2410` to handle ``LD2410``
+devices.
+
+
+Create and Connect
+------------------
+
+.. class:: LD2410
+   :no-index:
 
    .. automethod:: __init__
    .. automethod:: __aenter__
    .. automethod:: __aexit__
+
 
 Properties
 ----------

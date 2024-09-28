@@ -135,7 +135,7 @@ class LD2410:
 
     @property
     def configuring(self) -> bool:
-        """Tell whether the configuration context is currently entered."""
+        """Tell whether a configuration context is currently entered."""
         return bool(not self._restarted and self._config_lock.locked())
 
     @property
@@ -632,7 +632,7 @@ class LD2410:
         try:
             index = BaudRateIndex.from_integer(baudrate)
         except KeyError:
-            raise CommandParamError(f'Unknown index for baudrate {baudrate}') from None
+            raise CommandParamError(f'Unknown index for baud rate {baudrate}') from None
 
         await self._request(CommandCode.BAUD_RATE_SET, {'index': int(index)})
 

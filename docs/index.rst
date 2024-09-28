@@ -1,6 +1,9 @@
 Asyncio LD2410 Library
 ======================
 
+.. module:: aio_ld2410
+   :no-typesetting:
+
 |licence| |version| |pyversions| |coverage| |docs| |openssf|
 
 .. |licence| image:: https://img.shields.io/pypi/l/aio-ld2410.svg
@@ -47,5 +50,6 @@ Here's how you can start reading sensor reports from a few lines of python:
 .. toctree::
    :hidden:
 
+   start/index
    api/index
    about/index
