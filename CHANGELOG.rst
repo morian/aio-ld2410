@@ -14,12 +14,22 @@ The format is based on `Keep a Changelog`_ and this project adheres to `Semantic
 
 Added
 -----
-- Add a whole lot of documentation
+- Added documentation using Sphinx_:
+   - Device description and protocol base concepts
+   - Tutorial with many short code samples
+   - API reference covering the entire user API
+   - About section with project related pages (including this CHANGELOG)
+
+.. _Sphinx: https://www.sphinx-doc.org/en/master/
 
 Changed
 -------
-- Renamed many things, inspired by ESPHome_
-- Reworked :mod:`.exceptions` to make things more straightforward
+- Renamed many methods and attributes, inspired by the naming in ESPHome_
+   - All references to ``motion`` have been renamed to ``moving``
+   - All references to ``standstill`` or ``stationary`` have been renamed to ``static``
+   - All references to ``auxiliary`` have been renamed to ``light``
+   - Attribute ``no_one_idle_duration`` was renamed to ``presence_timeout``
+- Reworked :mod:`.exceptions` to make things easier to understand
 - Reworked :class:`stream.FrameStream` with a real iterator
 
 .. _ESPHome: https://github.com/esphome/esphome
@@ -31,7 +41,8 @@ Fixed
    - :meth:`.LD2410.set_gate_sensitivity`
    - :meth:`.LD2410.set_light_control`
    - :meth:`.LD2410.set_parameters`
-- Renamed ``LD2410.set_gate_sentivity`` to `.LD2410.set_gate_sensitivity`
+- :meth:`.LD2410.set_baud_rate` can now raise :exc:`.CommandParamError`
+- Renamed ``LD2410.set_gate_sentivity`` to :meth:`.LD2410.set_gate_sensitivity`
 
 
 0.1.0 (2024-09-25)

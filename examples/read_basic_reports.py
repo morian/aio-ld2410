@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import asyncio
-from aio_ld2410 import LD2410, TargetStatus
+from aio_ld2410 import LD2410, ReportBasicStatus, TargetStatus
 
-def format_basic_report(rep) -> str:
+def format_basic_report(rep: ReportBasicStatus) -> str:
     items = []
 
     if rep.target_status & TargetStatus.STATIC:

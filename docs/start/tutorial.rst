@@ -3,11 +3,12 @@ Tutorial
 
 .. currentmodule:: aio_ld2410
 
-This section covers most of the API with real examples and commands.
+This tutorial covers the major API methods with real examples and commands.
 
 Links to the :ref:`reference` will be provided all along so you can get more details.
 
-Before going further, ensure to have a suitable python environment (see :ref:`installation`).
+Before going further on this tutorial, make sure to have a suitable python environment
+(see :ref:`installation`).
 
 
 Connecting to the device
@@ -39,7 +40,8 @@ The following code simply opens the device:
    :emphasize-lines: 7
    :linenos:
 
-If you ever need to change the baud rate (defaults to ``256000``) see :meth:`LD2410.__init__`.
+.. seealso::
+   :meth:`LD2410.__init__` if you ever need to change the baud rate (defaults to ``256000``).
 
 
 Entering the configuration mode
@@ -49,7 +51,8 @@ Entering configuration mode is also implemented as an asynchronous context.
 You cannot call configuration commands outside of this context!
 This context is a requirement before any other command is issued.
 
-See :meth:`LD2410.configure` for more details.
+.. seealso::
+   :meth:`LD2410.configure` for more details.
 
 In the following example the configuration context spread over the emphasized lines:
 
@@ -189,14 +192,22 @@ Reading reports
 
 Reports are push by the device to the serial link regularly and contain detection results.
 Advanced reports cat be requested using the engineering mode, which will not be covered in
-this tutorial (see :meth:`LD2410.set_engineering_mode` and :class:`ReportEngineeringStatus`).
+this tutorial
 
-Three methods are provided to get the same thing, reports:
-- :meth:`LD2410.get_last_report` to get the latest received report immediately
+.. seealso::
+   :meth:`LD2410.set_engineering_mode` to toggle the engineering mode.
+   :class:`ReportEngineeringStatus` to get the content of advanced reports.
+
+
+Three methods are provided to get reports:
+- :meth:`LD2410.get_last_report` to get the latest received report immediately (if any)
 - :meth:`LD2410.get_next_report` to wait and get the next available report
-- :meth:`LD2410.get_reports` to get reports in an asynchronous iterator
+- :meth:`LD2410.get_reports` to get reports as they arrive with an asynchronous iterator
 
-Note that reports are not generated while the configuration mode is active.
+.. admonition:: Configuration mode conflict
+   :class: hint
+
+   Note that reports are not generated while the configuration mode is active.
 
 The following example runs with the already configured value and reports static and moving
 targets as they arrive. Run this and hang around in front of the sensor to see changes.
@@ -205,7 +216,7 @@ targets as they arrive. Run this and hang around in front of the sensor to see c
    :caption: examples/read_basic_reports.py
    :linenos:
 
-And of course the output result:
+Here is a sample output of this command:
 
 .. code-block:: console
 
@@ -223,6 +234,6 @@ And of course the output result:
 
 
 Depending on your use case, you might want to change the configuration parameters and run
-this script again to find suitable values.
+this script again to finely tune the configuration values.
 
 This tutorial is now complete, to go further consider taking a look at the :ref:`reference`.
