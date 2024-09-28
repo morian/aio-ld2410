@@ -44,7 +44,6 @@ nitpick_ignore = [
 ]
 
 # Napoleon settings
-napoleon_google_docstring = True
 napoleon_use_admonition_for_notes = True
 
 # Autodoc
@@ -61,6 +60,7 @@ always_use_bars_union = True
 typehints_defaults = 'comma'
 typehints_use_signature = True
 typehints_use_signature_return = True
+typehints_use_rtype = False
 
 # InterSphinx
 intersphinx_mapping = {

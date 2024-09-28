@@ -4,7 +4,7 @@ Getting started
 Requirements
 ------------
 
-:mod:`aio_ld2410` requires Python ≥ 3.9.
+``aio-ld2410`` requires Python ≥ 3.9.
 
 
 .. admonition:: Use the most recent Python release
@@ -47,7 +47,6 @@ Guided Tour
 -----------
 
 .. toctree::
-   :titlesonly:
 
    concepts
    configuration

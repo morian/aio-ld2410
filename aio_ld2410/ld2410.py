@@ -105,17 +105,17 @@ class LD2410:
         """
         Create a new async client for the provided LD2410 device.
 
+        Important:
+            The command timeout affects all command requests when enabled.
+            If the device doesn't reply within this period, an ``asyncio.TimoutError``
+            is raised (which is equivalent to a :exc:`TimeoutError`) on Python 3.10+.
+
         Args:
             device: path to the device to use.
             baudrate: serial baud rate to use.
             command_timeout: how long to wait for a command reply (in seconds),
                 :obj:`None` to disable.
             read_bufsize: max buffer size used by the underlying :class:`asyncio.StreamReader`.
-
-        Important:
-            The command timeout affects all command requests when enabled.
-            If the device doesn't reply within this period, an ``asyncio.TimoutError``
-            is raised (which is equivalent to a :exc:`TimeoutError`) on Python 3.10+.
 
         """
         self._baudrate = baudrate
@@ -161,6 +161,9 @@ class LD2410:
 
         Raises:
             RuntimeError: when the device is already in use (:attr:`entered`).
+
+        Returns:
+            The exact same :class:`LD2410` object.
 
         """
         if self.entered:
@@ -320,19 +323,20 @@ class LD2410:
         As stated on the LD2410 documentation, no reports are generated when the configuration
         mode is active but the device now accepts configuration commands.
 
-        Note:
+        Notes:
             - This context is protected with an :class:`asyncio.Lock`.
             - This context absorbs :exc:`.ModuleRestartedError` (see :meth:`restart_module`)
 
-        Use example::
+        USE EXAMPLE::
 
             async with LD2410('/dev/ttyUSB0') as dev:
                 async with dev.configure():
                     # Some configuration commands
-                    pass
 
         Returns:
-            The result of the :attr:`.CommandCode.CONFIG_ENABLE` raw command.
+            Device's protocol information.
+
+            This is the standard reply for command :attr:`.CommandCode.CONFIG_ENABLE`.
 
             You most likely don't need this returned value.
 
@@ -375,15 +379,16 @@ class LD2410:
         """
         Get the device's bluetooth mac address.
 
-        The MAC address is returned as raw :class:`bytes`.
-
-        Use example::
+        USE EXAMPLE::
 
             async with LD2410('/dev/ttyUSB0') as dev:
                 async with dev.configure():
                     addr = await dev.get_bluetooth_address()
 
                 print('MAC address:', addr.hex(':'))
+
+        Returns:
+            The MAC address in 6 :class:`bytes`.
 
         """
         resp = await self._request(CommandCode.BLUETOOTH_MAC_GET)
@@ -400,13 +405,13 @@ class LD2410:
         See Also:
             The internal :class:`.ResolutionIndex` for a list of available resolutions.
 
-        Returns:
-            The distance resolution in centimeters.
-
         Raises:
             CommandContextError: when called outside of the configuration context.
             CommandReplyError: when the device returns an unknown resolution index.
             CommandStatusError: when the device replies with a failed status.
+
+        Returns:
+            The distance resolution in centimeters.
 
         """
         resp = await self._request(CommandCode.DISTANCE_RESOLUTION_GET)
@@ -422,12 +427,19 @@ class LD2410:
         """
         Get the device's firmware version.
 
-        Returns:
-            The firmware version structure.
+        USE EXAMPLE::
+
+            async with LD2410('/dev/ttyUSB0') as device:
+                async with device.configure():
+                    ver = await device.get_firmware_version()
+                    print(f'[+] Running with firmware v{ver}')
 
         Raises:
             CommandContextError: when called outside of the configuration context.
             CommandStatusError: when the device replies with a failed status.
+
+        Returns:
+            The firmware version structure.
 
         """
         resp = await self._request(CommandCode.FIRMWARE_VERSION)
@@ -458,7 +470,7 @@ class LD2410:
             generated in configuration mode.
 
         Returns:
-            The next report we just received from the device or :obj:`None` if there was none.
+            The next report we just received from the device (if any).
 
         """
         async with self._report_condition:
@@ -471,12 +483,12 @@ class LD2410:
         """
         Get the standard configuration parameters.
 
-        Returns:
-            The currently applied standard parameters.
-
         Raises:
             CommandContextError: when called outside of the configuration context.
             CommandStatusError: when the device replies with a failed status.
+
+        Returns:
+            The currently applied standard parameters.
 
         """
         resp = await self._request(CommandCode.PARAMETERS_READ)
@@ -507,6 +519,9 @@ class LD2410:
         Tell the device to reset all its parameters to factory settings.
 
 
+        Important:
+            This command requires a module restart to be effective!
+
         Hint:
             In factory settings, you get the following parameters:
 
@@ -536,9 +551,6 @@ class LD2410:
                       7                15%                    20%
                       8                15%                    20%
             =========== ================== ======================
-
-        Important:
-            This command requires a module restart to be effective!
 
         Raises:
             CommandContextError: when called outside of the configuration context.
@@ -580,7 +592,13 @@ class LD2410:
         with the integrated photo sensor.
 
 
-        Use example::
+        Caution:
+            This command may not be available on your variant or with your firmware.
+
+        Hint:
+            See :class:`.AuxiliaryControlConfig` for keyword arguments.
+
+        USE EXAMPLE::
 
             async with LD2410('/dev/ttyUSB0') as dev:
                 async with dev.configure():
@@ -590,12 +608,6 @@ class LD2410:
                         threshold=120,
                     )
 
-
-        Hint:
-            See :class:`.AuxiliaryControlConfig` for keyword arguments.
-
-        Caution:
-            This command may not be available on your variant or with your firmware.
 
         Raises:
             CommandContextError: when called outside of the configuration context.
@@ -614,14 +626,14 @@ class LD2410:
         """
         Set the serial port baud rate.
 
+        Important:
+            This command requires a module restart to be effective!
+
         Args:
             baudrate: the baud rate you want to apply (see :class:`.BaudRateIndex`).
 
         See Also:
             The internal :class:`.BaudRateIndex` for a list of available baud rates.
-
-        Important:
-            This command requires a module restart to be effective!
 
         Raises:
             CommandContextError: when called outside of the configuration context.
@@ -641,11 +653,11 @@ class LD2410:
         """
         Enable of disable bluetooth mode.
 
-        Args:
-            enabled: whether bluetooth should be enabled on the device.
-
         Important:
             This command requires a module restart to be effective!
+
+        Args:
+            enabled: whether bluetooth should be enabled on the device.
 
         Raises:
             CommandContextError: when called outside of the configuration context.
@@ -659,11 +671,11 @@ class LD2410:
         """
         Set the device's bluetooth password.
 
-        Args:
-            password: must have less than 7 ASCII characters.
-
         Caution:
             This command may not be available on your variant or with your firmware.
+
+        Args:
+            password: must have less than 7 ASCII characters.
 
         Raises:
             CommandContextError: when called outside of the configuration context.
@@ -682,14 +694,14 @@ class LD2410:
         """
         Set the gate distance resolution (in centimeter).
 
-        Args:
-            resolution: per-gate distance (the only valid values are 20 and 75 cm).
+        Important:
+            This command requires a module restart to be effective!
 
         Caution:
             This command seems to be available for a few devices / firmwares.
 
-        Important:
-            This command requires a module restart to be effective!
+        Args:
+            resolution: per-gate distance (the only valid values are 20 and 75 cm).
 
         See Also:
             The internal :class:`.ResolutionIndex` for a list of available resolutions.
@@ -712,11 +724,11 @@ class LD2410:
         """
         Enable or disable engineering reports.
 
-        Args:
-            enabled: whether :class:`.ReportStatus` should contain an advanced report.
-
         Caution:
             The engineering mode is lost after a device restart.
+
+        Args:
+            enabled: whether :class:`.ReportStatus` should contain an advanced report.
 
         See Also:
             - :class:`.ReportStatus` for the complete description of reports.
@@ -738,7 +750,13 @@ class LD2410:
         This method only sets basic configuration parameters.
 
 
-        Use example::
+        Hint:
+            See :class:`.ParametersConfig` for keyword arguments.
+
+        Tip:
+            These parameters apply immediately and are persistent across restarts.
+
+        USE EXAMPLE::
 
             async with LD2410('/dev/ttyUSB0') as dev:
                 async with dev.configure():
@@ -751,12 +769,6 @@ class LD2410:
 
         See Also:
             :class:`set_gate_sensitivity` to set additional parameters.
-
-        Hint:
-            See :class:`.ParametersConfig` for keyword arguments.
-
-        Tip:
-            These parameters apply immediately and are persistent across restarts.
 
         Raises:
             CommandContextError: when called outside of the configuration context.
@@ -778,7 +790,13 @@ class LD2410:
         This command is used to configure gate sensitivity to one or to all gate.
 
 
-        Use example::
+        Hint:
+            See :class:`.GateSensitivityConfig` for keyword arguments.
+
+        Tip:
+            These parameters apply immediately and are persistent across restarts.
+
+        USE EXAMPLE::
 
             async with LD2410('/dev/ttyUSB0') as dev:
                 async with dev.configure():
@@ -789,12 +807,6 @@ class LD2410:
                         standstill_sensitivity=20,
                     )
 
-
-        Hint:
-            See :class:`.GateSensitivityConfig` for keyword arguments.
-
-        Tip:
-            These parameters apply immediately and are persistent across restarts.
 
         Raises:
             CommandContextError: when called outside of the configuration context.
