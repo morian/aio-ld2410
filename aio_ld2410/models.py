@@ -84,12 +84,12 @@ class FirmwareVersion:
 
     type: int  #: Firmware type (documentation says it is 0).
     major: int  #: Major firmware version.
-    minor: int  #: Minor firmware version.
+    minor: int  #: Minor firmware version (should read as hex).
     revision: int  #: Firmware revision (should be read as hex).
 
     def __str__(self) -> str:
         """Get a textual representation of the firmware version."""
-        return f'{self.major}.{self.minor:02d}.{self.revision:08x}'
+        return f'{self.major}.{self.minor:02x}.{self.revision:08x}'
 
 
 class GateSensitivityConfig(TypedDict, total=True):
