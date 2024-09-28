@@ -12,35 +12,26 @@ from .exceptions import (
 )
 from .ld2410 import LD2410
 from .models import (
-    AuxiliaryControlConfig,
-    AuxiliaryControlStatus,
     ConfigModeStatus,
     FirmwareVersion,
     GateSensitivityConfig,
+    LightControlConfig,
+    LightControlStatus,
     ParametersConfig,
     ParametersStatus,
     ReportBasicStatus,
     ReportEngineeringStatus,
     ReportStatus,
 )
-from .protocol import (
-    AuxiliaryControl,
-    BaudRateIndex,
-    OutPinLevel,
-    ResolutionIndex,
-    TargetStatus,
-)
+from .protocol import BaudRateIndex, LightControl, OutPinLevel, ResolutionIndex, TargetStatus
 from .version import version
 
 __version__ = version
 __all__ = [
     'AioLd2410Error',
-    'AuxiliaryControl',
-    'AuxiliaryControlConfig',
-    'AuxiliaryControlStatus',
     'BaudRateIndex',
-    'CommandError',
     'CommandContextError',
+    'CommandError',
     'CommandParamError',
     'CommandReplyError',
     'CommandStatusError',
@@ -49,6 +40,9 @@ __all__ = [
     'FirmwareVersion',
     'GateSensitivityConfig',
     'LD2410',
+    'LightControl',
+    'LightControlConfig',
+    'LightControlStatus',
     'ModuleRestartedError',
     'OutPinLevel',
     'ParametersConfig',

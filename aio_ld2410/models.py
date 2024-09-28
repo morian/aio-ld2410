@@ -8,23 +8,23 @@ from typing import Any, TypeVar, TypedDict
 import dacite
 from construct import Container, EnumIntegerString
 
-from .protocol import AuxiliaryControl, OutPinLevel, TargetStatus
+from .protocol import LightControl, OutPinLevel, TargetStatus
 
 _T = TypeVar('_T')
 
 
 @dataclass
-class AuxiliaryControlStatus:
+class LightControlStatus:
     """
-    Status of the auxiliary controls for the ``OUT`` pin.
+    Status of the light controls for the ``OUT`` pin.
 
     See Also:
-        :meth:`.LD2410.get_auxiliary_controls`
+        :meth:`.LD2410.get_light_control`
 
     """
 
     #: Determines when the ``OUT`` pin is high with sensitivity.
-    control: AuxiliaryControl
+    control: LightControl
 
     #: Photo-sensitivity threshold value (from 0 to 255).
     threshold: int
@@ -33,20 +33,20 @@ class AuxiliaryControlStatus:
     default: OutPinLevel
 
 
-class AuxiliaryControlConfig(TypedDict, total=True):
+class LightControlConfig(TypedDict, total=True):
     """
-    Configuration of the auxiliary controls for the ``OUT`` pin.
+    Configuration of the light controls for the ``OUT`` pin.
 
-    This class is used to parse keyword arguments from :meth:`.LD2410.set_auxiliary_controls`.
+    This class is used to parse keyword arguments from :meth:`.LD2410.set_light_control`.
 
     See Also:
-        - :meth:`.LD2410.set_auxiliary_controls`
-        - :class:`AuxiliaryControlStatus`
+        - :meth:`.LD2410.set_light_control`
+        - :class:`LightControlStatus`
 
     """
 
     #: Determines when the ``OUT`` pin is high with sensitivity.
-    control: AuxiliaryControl
+    control: LightControl
 
     #: Photo-sensitivity threshold value (from 0 to 255).
     threshold: int
@@ -106,11 +106,11 @@ class GateSensitivityConfig(TypedDict, total=True):
     #: Gate to set (value form 0 to 8, can be 0xFFFF for broadcast to all gates).
     distance_gate: int
 
-    #: Motion sensitivity (in percent, from 0 to 100).
-    motion_sensitivity: int  # percent
+    #: Moving energy threshold (in percent, from 0 to 100).
+    moving_threshold: int  # percent
 
-    #: Stationary sensitivity (in percent, from 0 to 100).
-    standstill_sensitivity: int  # percent
+    #: Stationary energy threshold (in percent, from 0 to 100).
+    stopped_threshold: int  # percent
 
 
 class ParametersConfig(TypedDict, total=True):
@@ -124,14 +124,14 @@ class ParametersConfig(TypedDict, total=True):
 
     """
 
-    #: Farthest gate to consider for motion detection (from 2 to 8).
-    motion_max_distance_gate: int
+    #: Farthest gate to consider for moving detection (from 2 to 8).
+    moving_max_distance_gate: int
 
     #: Farthest gate to consider for stationary detection (from 2 to 8).
-    standstill_max_distance_gate: int
+    stopped_max_distance_gate: int
 
     #: How long to keep detecting a presence after the person moved away (0 to 65535 seconds).
-    no_one_idle_duration: int
+    presence_timeout: int
 
 
 @dataclass
@@ -148,20 +148,20 @@ class ParametersStatus:
     #: Farthest configurable gate number (should be 8).
     max_distance_gate: int
 
-    #: Farthest configured gate number for motion detection.
-    motion_max_distance_gate: int
+    #: Farthest configured gate number for moving detection.
+    moving_max_distance_gate: int
 
-    #: Array of motion sensitivities for each gate (9 elements, percentage).
-    motion_sensitivity: Sequence[int]
+    #: Array of moving energy thresholds for each gate (9 elements, percentage).
+    moving_threshold: Sequence[int]
 
     #: Farthest configured gate number for stationary detection.
-    standstill_max_distance_gate: int
+    stopped_max_distance_gate: int
 
-    #: Array of stationary sensitivities for each gate (9 elements, percentage).
-    standstill_sensitivity: Sequence[int]
+    #: Array of stationary energy thresholds for each gate (9 elements, percentage).
+    stopped_threshold: Sequence[int]
 
     #: How long the sensor keeps detecting a presence after the person moved away (seconds).
-    no_one_idle_duration: int
+    presence_timeout: int
 
 
 @dataclass
@@ -177,17 +177,17 @@ class ReportBasicStatus:
     #: Detection status flags of the target (if any).
     target_status: TargetStatus
 
-    #: When detected in motion, at which distance (in centimeters).
-    motion_distance: int
+    #: When detected moving, at which distance (in centimeters).
+    moving_distance: int
 
-    #: Motion energy of the target (in percent, from 0 to 100).
-    motion_energy: int
+    #: Moving energy of the target (in percent, from 0 to 100).
+    moving_energy: int
 
     #: When detected stationary, at which distance (in centimeters).
-    standstill_distance: int
+    stopped_distance: int
 
     #: Stationary energy of the target (in percent, from 0 to 100).
-    standstill_energy: int  # in percent
+    stopped_energy: int  # in percent
 
     #: Detection distance (in centimeters).
     detection_distance: int
@@ -204,17 +204,17 @@ class ReportEngineeringStatus:
 
     """
 
-    #: Farthest configured gate number for motion detection.
-    motion_max_distance_gate: int
+    #: Farthest configured gate number for moving detection.
+    moving_max_distance_gate: int
 
     #: Farthest configured gate number for stationary detection.
-    standstill_max_distance_gate: int
+    stopped_max_distance_gate: int
 
-    #: Array of motion energies for each gate (9 elements, percentage).
-    motion_gate_energy: Sequence[int]
+    #: Array of moving energies for each gate (9 elements, percentage).
+    moving_gate_energy: Sequence[int]
 
     #: Array of stationary energies for each gate (9 elements, percentage).
-    standstill_gate_energy: Sequence[int]
+    stopped_gate_energy: Sequence[int]
 
     #: Photo-sensor value (from 0 to 255).
     photosensitive_value: int

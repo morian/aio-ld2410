@@ -21,11 +21,11 @@ from .exceptions import (
     ModuleRestartedError,
 )
 from .models import (
-    AuxiliaryControlConfig,
-    AuxiliaryControlStatus,
     ConfigModeStatus,
     FirmwareVersion,
     GateSensitivityConfig,
+    LightControlConfig,
+    LightControlStatus,
     ParametersConfig,
     ParametersStatus,
     ReportStatus,
@@ -92,13 +92,13 @@ class LD2410:
     """Client of the LD2410 sensor."""
 
     DEFAULT_COMMAND_TIMEOUT: ClassVar[float] = 2.0
-    DEFAULT_BAUDRATE: ClassVar[int] = 256000
+    DEFAULT_BAUD_RATE: ClassVar[int] = 256000
 
     def __init__(
         self,
         device: str,
         *,
-        baudrate: int = DEFAULT_BAUDRATE,
+        baud_rate: int = DEFAULT_BAUD_RATE,
         command_timeout: float | None = DEFAULT_COMMAND_TIMEOUT,
         read_bufsize: int | None = None,
     ) -> None:
@@ -112,13 +112,13 @@ class LD2410:
 
         Args:
             device: path to the device to use.
-            baudrate: serial baud rate to use.
+            baud_rate: serial baud rate to use.
             command_timeout: how long to wait for a command reply (in seconds),
                 :obj:`None` to disable.
             read_bufsize: max buffer size used by the underlying :class:`asyncio.StreamReader`.
 
         """
-        self._baudrate = baudrate
+        self._baud_rate = baud_rate
         self._command_timeout = command_timeout
         self._device = device
         self._config_lock = asyncio.Lock()
@@ -230,7 +230,7 @@ class LD2410:
         """Open a serial connection for this device."""
         # This cannot be tested and is superseded during tests.
         return await open_serial_connection(
-            baudrate=self._baudrate,
+            baud_rate=self._baud_rate,
             limit=self._read_bufsize,
             url=self._device,
         )  # pragma: no cover
@@ -353,28 +353,6 @@ class LD2410:
                 self._restarted = False
 
     @configuration
-    async def get_auxiliary_controls(self) -> AuxiliaryControlStatus:
-        """
-        Get the auxiliary controls parameters for ``OUT`` pin.
-
-        This gets the specific configuration used to control the ``OUT`` pin status
-        with the integrated photo sensor.
-
-        Caution:
-            This command may not be available on your variant or with your firmware.
-
-        Raises:
-            CommandContextError: when called outside of the configuration context.
-            CommandStatusError: when the device replies with a failed status.
-
-        Returns:
-            The status of the auxiliary configuration.
-
-        """
-        resp = await self._request(CommandCode.AUXILIARY_CONTROL_GET)
-        return container_to_model(AuxiliaryControlStatus, resp.data)
-
-    @configuration
     async def get_bluetooth_address(self) -> bytes:
         """
         Get the device's bluetooth mac address.
@@ -461,6 +439,28 @@ class LD2410:
         """
         return copy.deepcopy(self._report)
 
+    @configuration
+    async def get_light_control(self) -> LightControlStatus:
+        """
+        Get the light controls parameters for ``OUT`` pin.
+
+        This gets the specific configuration used to control the ``OUT`` pin status
+        with the integrated photo sensor.
+
+        Caution:
+            This command may not be available on your variant or with your firmware.
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandStatusError: when the device replies with a failed status.
+
+        Returns:
+            The status of the light configuration.
+
+        """
+        resp = await self._request(CommandCode.LIGHT_CONTROL_GET)
+        return container_to_model(LightControlStatus, resp.data)
+
     async def get_next_report(self) -> ReportStatus:
         """
         Wait and get the next available report.
@@ -525,32 +525,32 @@ class LD2410:
         Hint:
             In factory settings, you get the following parameters:
 
-            ============================== ======================
-            Max moving distance gate                        8
-            Max stationary distance gate                    8
-            No-one duration                                 5 sec
-            Serial port baud rate                      256000 Hz
-            Bluetooth mode                                enabled
-            Bluetooth password                             HiLink
-            Distance resolution                             75 cm
-            Auxiliary control                            disabled
-            Auxiliary threshold                               128
-            Auxiliary default                                 LOW
-            ============================== ======================
+            ============================= ==============
+            Max moving distance gate              8
+            Max stationary distance gate          8
+            No-one duration                       5 sec
+            Serial port baud rate            256000 Hz
+            Bluetooth mode                  enabled
+            Bluetooth password               HiLink
+            Distance resolution                  75 cm
+            Light control                  disabled
+            Light threshold                     128
+            Light default                       LOW
+            ============================= ==============
 
-            =========== ================== ======================
-            Gate number Motion sensitivity Stationary sensitivity
-            =========== ================== ======================
-                      0                50%                    N/A
-                      1                50%                    N/A
-                      2                40%                    40%
-                      3                30%                    40%
-                      4                20%                    30%
-                      5                15%                    30%
-                      6                15%                    20%
-                      7                15%                    20%
-                      8                15%                    20%
-            =========== ================== ======================
+            ====== ================== ===================
+             Gate   Moving threshold   Stopped threshold
+            ====== ================== ===================
+                 0                50%                 N/A
+                 1                50%                 N/A
+                 2                40%                 40%
+                 3                30%                 40%
+                 4                20%                 30%
+                 5                15%                 30%
+                 6                15%                 20%
+                 7                15%                 20%
+                 8                15%                 20%
+            ====== ================== ===================
 
         Raises:
             CommandContextError: when called outside of the configuration context.
@@ -584,45 +584,7 @@ class LD2410:
             raise ModuleRestartedError("Module is being restarted from user's request.")
 
     @configuration
-    async def set_auxiliary_controls(self, **kwargs: Unpack[AuxiliaryControlConfig]) -> None:
-        """
-        Set the auxiliary controls parameters for ``OUT`` pin.
-
-        This sets the specific configuration used to control the ``OUT`` pin status
-        with the integrated photo sensor.
-
-
-        Caution:
-            This command may not be available on your variant or with your firmware.
-
-        Hint:
-            See :class:`.AuxiliaryControlConfig` for keyword arguments.
-
-        USE EXAMPLE::
-
-            async with LD2410('/dev/ttyUSB0') as dev:
-                async with dev.configure():
-                    await dev.set_auxiliary_controls(
-                        control=AuxiliaryControl.UNDER_THRESHOLD,
-                        default=OutPinLevel.LOW,
-                        threshold=120,
-                    )
-
-
-        Raises:
-            CommandContextError: when called outside of the configuration context.
-            CommandParamError: when a mandatory keyword argument is missing.
-            CommandStatusError: when the device replies with a failed status.
-
-        """
-        data = AuxiliaryControlConfig(**kwargs)
-        missing = AuxiliaryControlConfig.__required_keys__.difference(data.keys())
-        if missing:
-            raise CommandParamError(f'Missing parameters: {set(missing)}')
-        await self._request(CommandCode.AUXILIARY_CONTROL_SET, data)
-
-    @configuration
-    async def set_baudrate(self, baudrate: int) -> None:
+    async def set_baud_rate(self, baud_rate: int) -> None:
         """
         Set the serial port baud rate.
 
@@ -630,7 +592,7 @@ class LD2410:
             This command requires a module restart to be effective!
 
         Args:
-            baudrate: the baud rate you want to apply (see :class:`.BaudRateIndex`).
+            baud_rate: the baud rate you want to apply (see :class:`.BaudRateIndex`).
 
         See Also:
             The internal :class:`.BaudRateIndex` for a list of available baud rates.
@@ -642,9 +604,9 @@ class LD2410:
 
         """
         try:
-            index = BaudRateIndex.from_integer(baudrate)
+            index = BaudRateIndex.from_integer(baud_rate)
         except KeyError:
-            raise CommandParamError(f'Unknown index for baud rate {baudrate}') from None
+            raise CommandParamError(f'Unknown index for baud rate {baud_rate}') from None
 
         await self._request(CommandCode.BAUD_RATE_SET, {'index': int(index)})
 
@@ -743,6 +705,44 @@ class LD2410:
         await self._request(code)
 
     @configuration
+    async def set_light_control(self, **kwargs: Unpack[LightControlConfig]) -> None:
+        """
+        Set the light controls parameters for ``OUT`` pin.
+
+        This sets the specific configuration used to control the ``OUT`` pin status
+        with the integrated photo sensor.
+
+
+        Caution:
+            This command may not be available on your variant or with your firmware.
+
+        Hint:
+            See :class:`.LightControlConfig` for keyword arguments.
+
+        USE EXAMPLE::
+
+            async with LD2410('/dev/ttyUSB0') as dev:
+                async with dev.configure():
+                    await dev.set_light_control(
+                        control=LightControl.BELOW,
+                        default=OutPinLevel.LOW,
+                        threshold=120,
+                    )
+
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandParamError: when a mandatory keyword argument is missing.
+            CommandStatusError: when the device replies with a failed status.
+
+        """
+        data = LightControlConfig(**kwargs)
+        missing = LightControlConfig.__required_keys__.difference(data.keys())
+        if missing:
+            raise CommandParamError(f'Missing parameters: {set(missing)}')
+        await self._request(CommandCode.LIGHT_CONTROL_SET, data)
+
+    @configuration
     async def set_parameters(self, **kwargs: Unpack[ParametersConfig]) -> None:
         """
         Set the standard configuration parameters.
@@ -761,9 +761,9 @@ class LD2410:
             async with LD2410('/dev/ttyUSB0') as dev:
                 async with dev.configure():
                     await dev.set_parameters(
-                        motion_max_distance_gate=7,
-                        standstill_max_distance_gate=7,
-                        no_one_idle_duration=5,
+                        moving_max_distance_gate=7,
+                        stopped_max_distance_gate=7,
+                        presence_timeout=5,
                     )
 
 
@@ -803,8 +803,8 @@ class LD2410:
                     # Set sensitivities for gate 4.
                     await dev.set_gate_sensitivity(
                         distance_gate=4,
-                        motion_sensitivity=25,
-                        standstill_sensitivity=20,
+                        moving_threshold=25,
+                        stopped_threshold=20,
                     )
 
 

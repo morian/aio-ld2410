@@ -18,14 +18,18 @@ Added
 
 Changed
 -------
+- Renamed many things, inspired by ESPHome_
 - Reworked :mod:`.exceptions` to make things more straightforward
 - Reworked :class:`stream.FrameStream` with a real iterator
+
+.. _ESPHome: https://github.com/esphome/esphome
+
 
 Fixed
 -----
 - Now checking arguments to the following methods:
-   - :meth:`.LD2410.set_auxiliary_controls`
    - :meth:`.LD2410.set_gate_sensitivity`
+   - :meth:`.LD2410.set_light_control`
    - :meth:`.LD2410.set_parameters`
 - Renamed ``LD2410.set_gate_sentivity`` to `.LD2410.set_gate_sensitivity`
 

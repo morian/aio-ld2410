@@ -52,16 +52,16 @@ class CommandCode(IntEnum):
 
     # The following replies are available on FW v2.4 and later.
     # https://github.com/esphome/feature-requests/issues/2156#issuecomment-1472962509
-    AUXILIARY_CONTROL_SET = 0xAD
-    AUXILIARY_CONTROL_GET = 0xAE
+    LIGHT_CONTROL_SET = 0xAD
+    LIGHT_CONTROL_GET = 0xAE
 
 
-class AuxiliaryControl(IntEnum):
-    """Configuration of the auxiliary control."""
+class LightControl(IntEnum):
+    """Configuration of the light control."""
 
     DISABLED = 0  #: The ``OUT`` pin will never be affected by photo-sensor
-    UNDER_THRESHOLD = 1  #: The ``OUT`` pin is HIGH when value is under threshold.
-    ABOVE_THRESHOLD = 2  #: The ``OUT`` pin is HIGH when value is above threshold.
+    BELOW = 1  #: The ``OUT`` pin is HIGH when value is under threshold.
+    ABOVE = 2  #: The ``OUT`` pin is HIGH when value is above threshold.
 
 
 class BaudRateIndex(IntEnum):
@@ -128,12 +128,12 @@ _CommandSwitch = Switch(
     {
         # This following configuration is persistent and does not require a restart.
         CommandCode.PARAMETERS_WRITE: Struct(
-            Const(0, Int16ul),  # Maximum motion distance gate word
-            'motion_max_distance_gate' / Int32ul,  # Range 2-8 (gate)
-            Const(1, Int16ul),  # Maximum standstill distance gate word
-            'standstill_max_distance_gate' / Int32ul,  # Range 2-8 (gate)
+            Const(0, Int16ul),  # Maximum moving distance gate word
+            'moving_max_distance_gate' / Int32ul,  # Range 2-8 (gate)
+            Const(1, Int16ul),  # Maximum stopped distance gate word
+            'stopped_max_distance_gate' / Int32ul,  # Range 2-8 (gate)
             Const(2, Int16ul),  # No one duration
-            'no_one_idle_duration' / Int32ul,  # Range 0-65535 (seconds)
+            'presence_timeout' / Int32ul,  # Range 0-65535 (seconds)
         ),
         CommandCode.PARAMETERS_READ: Pass,
         # The following configuration is lost on restart.
@@ -143,10 +143,10 @@ _CommandSwitch = Switch(
         CommandCode.GATE_SENSITIVITY_SET: Struct(
             Const(0, Int16ul),  # Distance gate word
             'distance_gate' / Int32ul,  # Range 1-8 or 0xFFFF for all gates
-            Const(1, Int16ul),  # Motion sensitivity word
-            'motion_sensitivity' / Int32ul,  # Range 0-100 (percent)
-            Const(2, Int16ul),  # Standstill sensitivity word
-            'standstill_sensitivity' / Int32ul,  # Range 0-100 (percent)
+            Const(1, Int16ul),  # Moving sensitivity word
+            'moving_threshold' / Int32ul,  # Range 0-100 (percent)
+            Const(2, Int16ul),  # Stopped sensitivity word
+            'stopped_threshold' / Int32ul,  # Range 0-100 (percent)
         ),
         CommandCode.FIRMWARE_VERSION: Pass,
         # The following configuration takes effect after module restart.
@@ -171,12 +171,12 @@ _CommandSwitch = Switch(
             'resolution' / Enum(Int16ul, ResolutionIndex),
         ),
         CommandCode.DISTANCE_RESOLUTION_GET: Pass,
-        CommandCode.AUXILIARY_CONTROL_SET: Struct(
-            'control' / Enum(Byte, AuxiliaryControl),
+        CommandCode.LIGHT_CONTROL_SET: Struct(
+            'control' / Enum(Byte, LightControl),
             'threshold' / Byte,  # From 0 to 255
             'default' / Enum(Int16ul, OutPinLevel),
         ),
-        CommandCode.AUXILIARY_CONTROL_GET: Pass,
+        CommandCode.LIGHT_CONTROL_GET: Pass,
     },
     Error,
 )
@@ -196,11 +196,11 @@ _ReplySwitch = Switch(
         CommandCode.PARAMETERS_READ: Struct(
             Const(0xAA, Byte),  # Header
             'max_distance_gate' / Byte,  # The farthest gate this chip can handle (0x08)
-            'motion_max_distance_gate' / Byte,  # Configured max motion gate
-            'standstill_max_distance_gate' / Byte,  # Configured max standstill gate
-            'motion_sensitivity' / Array(9, Byte),  # percent
-            'standstill_sensitivity' / Array(9, Byte),  # percent
-            'no_one_idle_duration' / Int16ul,  # Range 0-65535 (seconds)
+            'moving_max_distance_gate' / Byte,  # Configured max moving gate
+            'stopped_max_distance_gate' / Byte,  # Configured max stopped gate
+            'moving_threshold' / Array(9, Byte),  # percent
+            'stopped_threshold' / Array(9, Byte),  # percent
+            'presence_timeout' / Int16ul,  # Range 0-65535 (seconds)
         ),
         CommandCode.ENGINEERING_ENABLE: Pass,
         CommandCode.ENGINEERING_DISABLE: Pass,
@@ -234,9 +234,9 @@ _ReplySwitch = Switch(
         ),
         # The following replies are available on FW v2.4 and later.
         # It seems to be related to the OUT pin behavior.
-        CommandCode.AUXILIARY_CONTROL_SET: Pass,
-        CommandCode.AUXILIARY_CONTROL_GET: Struct(
-            'control' / Enum(Byte, AuxiliaryControl),
+        CommandCode.LIGHT_CONTROL_SET: Pass,
+        CommandCode.LIGHT_CONTROL_GET: Struct(
+            'control' / Enum(Byte, LightControl),
             'threshold' / Byte,  # From 0 to 255
             'default' / Enum(Int16ul, OutPinLevel),
         ),

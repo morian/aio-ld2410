@@ -32,8 +32,8 @@ _COMMAND_TRACES = {
     CommandCode.DISTANCE_RESOLUTION_GET: 'fd fc fb fa 02 00 ab 00 04 03 02 01',
     CommandCode.CONFIG_ENABLE: 'fd fc fb fa 04 00 ff 00 01 00 04 03 02 01',
     CommandCode.CONFIG_DISABLE: 'fd fc fb fa 02 00 fe 00 04 03 02 01',
-    CommandCode.AUXILIARY_CONTROL_SET: 'fd fc fb fa 06 00 ad 00 01 60 00 00 04 03 02 01',
-    CommandCode.AUXILIARY_CONTROL_GET: 'fd fc fb fa 02 00 ae 00 04 03 02 01',
+    CommandCode.LIGHT_CONTROL_SET: 'fd fc fb fa 06 00 ad 00 01 60 00 00 04 03 02 01',
+    CommandCode.LIGHT_CONTROL_GET: 'fd fc fb fa 02 00 ae 00 04 03 02 01',
 }
 
 _REPLY_TRACES = {
@@ -62,17 +62,17 @@ _REPLY_TRACES = {
     CommandCode.BLUETOOTH_PASSWORD_SET: 'fd fc fb fa 04 00 a9 01 00 00 04 03 02 01',
     CommandCode.DISTANCE_RESOLUTION_SET: 'fd fc fb fa 04 00 aa 01 00 00 04 03 02 01',
     CommandCode.DISTANCE_RESOLUTION_GET: 'fd fc fb fa 06 00 ab 01 00 00 01 00 04 03 02 01',
-    CommandCode.AUXILIARY_CONTROL_SET: 'fd fc fb fa 04 00 ad 01 00 00 04 03 02 01',
-    CommandCode.AUXILIARY_CONTROL_GET: 'fd fc fb fa 08 00 ae 01 00 00 00 80 00 00 04 03 02 01',
+    CommandCode.LIGHT_CONTROL_SET: 'fd fc fb fa 04 00 ad 01 00 00 04 03 02 01',
+    CommandCode.LIGHT_CONTROL_GET: 'fd fc fb fa 08 00 ae 01 00 00 00 80 00 00 04 03 02 01',
 }
 
 
-def test_good_baudrate():
+def test_good_baud_rate():
     rate = BaudRateIndex.from_integer(256000)
     assert rate == BaudRateIndex.RATE_256000
 
 
-def test_bad_baudrate():
+def test_bad_baud_rate():
     with pytest.raises(KeyError):
         BaudRateIndex.from_integer(256001)
 

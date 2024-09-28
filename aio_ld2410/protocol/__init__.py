@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from .command import (
-    AuxiliaryControl,
     BaudRateIndex,
     Command,
     CommandCode,
+    LightControl,
     OutPinLevel,
     Reply,
     ReplyStatus,
@@ -28,7 +28,6 @@ __all__ = [
     'FRAME_FOOTER_REPORT',
     'FRAME_HEADER_COMMAND',
     'FRAME_HEADER_REPORT',
-    'AuxiliaryControl',
     'BaudRateIndex',
     'Command',
     'CommandCode',
@@ -36,6 +35,7 @@ __all__ = [
     'Frame',
     'FrameHeader',
     'FrameType',
+    'LightControl',
     'OutPinLevel',
     'Reply',
     'ReplyStatus',

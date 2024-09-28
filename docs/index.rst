@@ -51,5 +51,5 @@ Here's how you can start reading sensor reports from a few lines of python:
    :hidden:
 
    start/index
-   api/index
+   reference/index
    about/index

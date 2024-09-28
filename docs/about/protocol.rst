@@ -30,8 +30,8 @@ from which were extracted the following additional commands:
 
 - Read the distance resolution parameter
 - Write the distance resolution parameter
-- Read auxiliary control parameters
-- Write auxiliary control parameters
+- Read light control parameters
+- Write light control parameters
 
 We also get details on two additional fields provided in the engineering report:
 

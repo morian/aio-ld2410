@@ -9,10 +9,10 @@ Data structures
 Common configuration values
 ---------------------------
 
-.. autoclass:: AuxiliaryControl
+.. autoclass:: BaudRateIndex
    :members:
 
-.. autoclass:: BaudRateIndex
+.. autoclass:: LightControl
    :members:
 
 .. autoclass:: ResolutionIndex
@@ -29,10 +29,10 @@ Common configuration values
 Command parameters
 ------------------
 
-.. autoclass:: AuxiliaryControlConfig
+.. autoclass:: GateSensitivityConfig
    :members:
 
-.. autoclass:: GateSensitivityConfig
+.. autoclass:: LightControlConfig
    :members:
 
 .. autoclass:: ParametersConfig
@@ -42,10 +42,6 @@ Command parameters
 Command replies
 ---------------
 
-.. autoclass:: AuxiliaryControlStatus
-   :no-show-inheritance:
-   :members:
-
 .. autoclass:: ConfigModeStatus
    :no-show-inheritance:
    :members:
@@ -54,6 +50,10 @@ Command replies
    :no-show-inheritance:
    :members:
    :special-members: __str__
+
+.. autoclass:: LightControlStatus
+   :no-show-inheritance:
+   :members:
 
 .. autoclass:: ParametersStatus
    :no-show-inheritance:

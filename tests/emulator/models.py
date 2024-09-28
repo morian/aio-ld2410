@@ -7,10 +7,10 @@ from enum import IntEnum, auto
 from typing import Any
 
 from aio_ld2410 import (
-    AuxiliaryControl,
-    AuxiliaryControlStatus,
     ConfigModeStatus,
     FirmwareVersion,
+    LightControl,
+    LightControlStatus,
     OutPinLevel,
     ParametersStatus,
 )
@@ -30,14 +30,14 @@ _DefaultFirmwareVersion = FirmwareVersion(
 )
 _DefaultParameters = ParametersStatus(
     max_distance_gate=8,
-    motion_max_distance_gate=8,
-    motion_sensitivity=[50, 50, 40, 30, 20, 15, 15, 15, 15],
-    standstill_max_distance_gate=8,
-    standstill_sensitivity=[0, 0, 40, 40, 30, 30, 20, 20, 20],
-    no_one_idle_duration=5,
+    moving_max_distance_gate=8,
+    moving_threshold=[50, 50, 40, 30, 20, 15, 15, 15, 15],
+    stopped_max_distance_gate=8,
+    stopped_threshold=[0, 0, 40, 40, 30, 30, 20, 20, 20],
+    presence_timeout=5,
 )
-_DefaultAuxiliary = AuxiliaryControlStatus(
-    control=AuxiliaryControl.DISABLED,
+_DefaultLight = LightControlStatus(
+    control=LightControl.DISABLED,
     threshold=128,
     default=OutPinLevel.LOW,
 )
@@ -66,7 +66,7 @@ class EmulatorCommand:
 class DeviceStatus:
     """Contains the internal state of a device."""
 
-    baudrate = BaudRateIndex.RATE_256000
+    baud_rate = BaudRateIndex.RATE_256000
     configuring: bool = False
     config_mode: ConfigModeStatus = _DefaultConfigModeStatus
     engineering_mode: bool = False
@@ -78,13 +78,11 @@ class DeviceStatus:
         default_factory=lambda: copy.deepcopy(_DefaultParameters)
     )
     resolution: ResolutionIndex = ResolutionIndex.RESOLUTION_75CM
-    auxiliary: AuxiliaryControlStatus = field(
-        default_factory=lambda: copy.deepcopy(_DefaultAuxiliary)
-    )
+    light: LightControlStatus = field(default_factory=lambda: copy.deepcopy(_DefaultLight))
 
     def reset_to_factory(self) -> None:
         """Reset these parameters to factory settings."""
-        self.baudrate = BaudRateIndex.RATE_256000
+        self.baud_rate = BaudRateIndex.RATE_256000
         self.bluetooth_mode = True
         self.bluetooth_password = _DefaultBluetoothPassword
         self.engineering_mode = False

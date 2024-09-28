@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING, Any
 import dacite
 
 from aio_ld2410 import (
-    AuxiliaryControl,
     BaudRateIndex,
+    LightControl,
     OutPinLevel,
     ReportBasicStatus,
     ReportEngineeringStatus,
@@ -85,8 +85,8 @@ class EmulatedDevice:
             CommandCode.GATE_SENSITIVITY_SET: self._cmd_gate_sensitivity_set,
             CommandCode.PARAMETERS_READ: self._cmd_parameters_read,
             CommandCode.PARAMETERS_WRITE: self._cmd_parameters_write,
-            CommandCode.AUXILIARY_CONTROL_GET: self._cmd_auxiliary_control_get,
-            CommandCode.AUXILIARY_CONTROL_SET: self._cmd_auxiliary_control_set,
+            CommandCode.LIGHT_CONTROL_GET: self._cmd_light_control_get,
+            CommandCode.LIGHT_CONTROL_SET: self._cmd_light_control_set,
         }
         self._emu_handlers = {
             EmulatorCode.DISCONNECT_NOW: self._emu_disconnect_now,
@@ -128,10 +128,10 @@ class EmulatedDevice:
         target_status = TargetStatus(randrange(0, 4))
         basic = ReportBasicStatus(
             target_status=target_status,
-            motion_distance=randrange(0, max_range_cm),
-            motion_energy=randrange(0, 101),
-            standstill_distance=randrange(0, max_range_cm),
-            standstill_energy=randrange(0, 101),
+            moving_distance=randrange(0, max_range_cm),
+            moving_energy=randrange(0, 101),
+            stopped_distance=randrange(0, max_range_cm),
+            stopped_energy=randrange(0, 101),
             detection_distance=randrange(0, max_range_cm),
         )
         engineering = None
@@ -139,10 +139,10 @@ class EmulatedDevice:
             params = self._status.parameters
             gate_range = params.max_distance_gate + 1
             engineering = ReportEngineeringStatus(
-                motion_max_distance_gate=params.motion_max_distance_gate,
-                standstill_max_distance_gate=params.standstill_max_distance_gate,
-                motion_gate_energy=[randrange(0, 101) for _ in range(gate_range)],
-                standstill_gate_energy=[randrange(0, 101) for _ in range(gate_range)],
+                moving_max_distance_gate=params.moving_max_distance_gate,
+                stopped_max_distance_gate=params.stopped_max_distance_gate,
+                moving_gate_energy=[randrange(0, 101) for _ in range(gate_range)],
+                stopped_gate_energy=[randrange(0, 101) for _ in range(gate_range)],
                 photosensitive_value=randrange(0, 256),
                 out_pin_status=OutPinLevel(randrange(0, 2)),
             )
@@ -218,7 +218,7 @@ class EmulatedDevice:
     @need_configuration_mode
     async def _cmd_baud_rate_set(self, command: Container[Any]) -> bytes:
         """Handle command BAUD_RATE_SET."""
-        self._status.baudrate = BaudRateIndex(command.data.index.intvalue)
+        self._status.baud_rate = BaudRateIndex(command.data.index.intvalue)
         return self._build_reply(command.code)
 
     @need_configuration_mode
@@ -233,9 +233,9 @@ class EmulatedDevice:
         params = self._status.parameters
         # Upper bits are discarded as observed on the real device.
         # It seems like the gate number can be set beyond the real gate....
-        params.motion_max_distance_gate = data.motion_max_distance_gate & 0xFF
-        params.standstill_max_distance_gate = data.standstill_max_distance_gate & 0xFF
-        params.no_one_idle_duration = data.no_one_idle_duration & 0xFFFF
+        params.moving_max_distance_gate = data.moving_max_distance_gate & 0xFF
+        params.stopped_max_distance_gate = data.stopped_max_distance_gate & 0xFF
+        params.presence_timeout = data.presence_timeout & 0xFFFF
         return self._build_reply(command.code)
 
     @need_configuration_mode
@@ -252,8 +252,8 @@ class EmulatedDevice:
 
         indices = range(params.max_distance_gate + 1) if index == 0xFFFF else [index]
         for i in indices:
-            params.motion_sensitivity[i] = data.motion_sensitivity & 0xFF
-            params.standstill_sensitivity[i] = data.standstill_sensitivity & 0xFF
+            params.moving_threshold[i] = data.moving_threshold & 0xFF
+            params.stopped_threshold[i] = data.stopped_threshold & 0xFF
         return self._build_reply(command.code)
 
     @need_configuration_mode
@@ -264,18 +264,18 @@ class EmulatedDevice:
         return self._build_reply(command.code)
 
     @need_configuration_mode
-    async def _cmd_auxiliary_control_get(self, command: Container[Any]) -> bytes:
-        """Handle command AUXILIARY_CONTROL_GET."""
-        return self._build_reply(command.code, data=self._status.auxiliary)
+    async def _cmd_light_control_get(self, command: Container[Any]) -> bytes:
+        """Handle command LIGHT_CONTROL_GET."""
+        return self._build_reply(command.code, data=self._status.light)
 
     @need_configuration_mode
-    async def _cmd_auxiliary_control_set(self, command: Container[Any]) -> bytes:
-        """Handle command AUXILIARY_CONTROL_SET."""
+    async def _cmd_light_control_set(self, command: Container[Any]) -> bytes:
+        """Handle command LIGHT_CONTROL_SET."""
         data = command.data
-        aux = self._status.auxiliary
-        aux.control = AuxiliaryControl(data.control.intvalue)
-        aux.threshold = data.threshold & 0xFF
-        aux.default = OutPinLevel(data.default.intvalue)
+        light = self._status.light
+        light.control = LightControl(data.control.intvalue)
+        light.threshold = data.threshold & 0xFF
+        light.default = OutPinLevel(data.default.intvalue)
         return self._build_reply(command.code)
 
     async def _emu_disconnect_after_command(self, command: EmulatorCommand) -> None:

@@ -12,12 +12,12 @@ import pytest
 
 from aio_ld2410 import (
     LD2410,
-    AuxiliaryControl,
     CommandContextError,
     CommandParamError,
     CommandReplyError,
     CommandStatusError,
     ConnectionClosedError,
+    LightControl,
     OutPinLevel,
     ld2410,
 )
@@ -143,14 +143,14 @@ class TestLD2410:
     async def test_valid_baud_rate(self, device, rate):
         """Check that we can set valid baud rates."""
         async with device.configure():
-            await device.set_baudrate(rate)
+            await device.set_baud_rate(rate)
 
     @pytest.mark.parametrize('rate', [256, 12345])
     async def test_invalid_baud_rate(self, device, rate):
         """Check that we cannot set invalid baud rates."""
         async with device.configure():
             with pytest.raises(CommandParamError):
-                await device.set_baudrate(rate)
+                await device.set_baud_rate(rate)
 
     @pytest.mark.parametrize('mode', [True, False])
     async def test_bluetooth_set(self, device, mode):
@@ -205,76 +205,76 @@ class TestLD2410:
             await device.reset_to_factory()
 
     @pytest.mark.parametrize(
-        ('motion_max', 'standstill_max', 'idle_duration'),
+        ('moving_max', 'stopped_max', 'presence_timeout'),
         [
             (8, 8, 2),
             (4, 4, 764),
             (264, 264, 65537),
         ],
     )
-    async def test_parameters(self, device, motion_max, standstill_max, idle_duration):
+    async def test_parameters(self, device, moving_max, stopped_max, presence_timeout):
         """Check that we can set parameters."""
         async with device.configure():
             await device.set_parameters(
-                motion_max_distance_gate=motion_max,
-                standstill_max_distance_gate=standstill_max,
-                no_one_idle_duration=idle_duration,
+                moving_max_distance_gate=moving_max,
+                stopped_max_distance_gate=stopped_max,
+                presence_timeout=presence_timeout,
             )
             params = await device.get_parameters()
-            assert params.motion_max_distance_gate == motion_max & 0xFF
-            assert params.standstill_max_distance_gate == standstill_max & 0xFF
-            assert params.no_one_idle_duration == idle_duration & 0xFFFF
+            assert params.moving_max_distance_gate == moving_max & 0xFF
+            assert params.stopped_max_distance_gate == stopped_max & 0xFF
+            assert params.presence_timeout == presence_timeout & 0xFFFF
 
     async def test_parameters_missing_kwarg(self, device):
         """Check that we cannot skip a parameter."""
         async with device.configure():
             with pytest.raises(CommandParamError, match='Missing parameters'):
                 await device.set_parameters(
-                    standstill_max_distance_gate=6,
-                    no_one_idle_duration=5,
+                    stopped_max_distance_gate=6,
+                    presence_timeout=5,
                 )
 
     @pytest.mark.parametrize('gate', range(9))
     async def test_gate_sensitivity_set(self, device, gate):
         """Check sensitivity when set to individual gates."""
         async with device.configure():
-            motion = 100 - 2 * gate
-            standstill = 100 - 3 * gate
+            moving = 100 - 2 * gate
+            stopped = 100 - 3 * gate
             await device.set_gate_sensitivity(
                 distance_gate=gate,
-                motion_sensitivity=motion,
-                standstill_sensitivity=standstill,
+                moving_threshold=moving,
+                stopped_threshold=stopped,
             )
             params = await device.get_parameters()
-            assert params.motion_sensitivity[gate] == motion
-            assert params.motion_sensitivity[gate] == motion
+            assert params.moving_threshold[gate] == moving
+            assert params.moving_threshold[gate] == moving
 
     async def test_gate_sensitivity_missing_kwarg(self, device):
         """Check gate sensitivity setter with a missing argument."""
         async with device.configure():
             with pytest.raises(CommandParamError, match='Missing parameters'):
-                await device.set_gate_sensitivity(distance_gate=4, motion_sensitivity=90)
+                await device.set_gate_sensitivity(distance_gate=4, moving_threshold=90)
 
     @pytest.mark.parametrize(
-        ('motion', 'standstill'),
+        ('moving', 'stopped'),
         [
             (64, 64),
             (102, 102),
             (300, 300),
         ],
     )
-    async def test_gate_sensitivity_set_broadcast(self, device, motion, standstill):
+    async def test_gate_sensitivity_set_broadcast(self, device, moving, stopped):
         """Check sensitivity when set through broadcast."""
         async with device.configure():
             await device.set_gate_sensitivity(
                 distance_gate=0xFFFF,
-                motion_sensitivity=motion,
-                standstill_sensitivity=standstill,
+                moving_threshold=moving,
+                stopped_threshold=stopped,
             )
             params = await device.get_parameters()
             for i in range(params.max_distance_gate + 1):
-                assert params.motion_sensitivity[i] == motion & 0xFF
-                assert params.standstill_sensitivity[i] == standstill & 0xFF
+                assert params.moving_threshold[i] == moving & 0xFF
+                assert params.stopped_threshold[i] == stopped & 0xFF
 
     @pytest.mark.parametrize('gate', [9, 100, 657, 65549])
     async def test_gate_sensitivity_error(self, device, gate):
@@ -283,8 +283,8 @@ class TestLD2410:
             with pytest.raises(CommandStatusError, match='received bad status: FAILURE'):
                 await device.set_gate_sensitivity(
                     distance_gate=gate,
-                    motion_sensitivity=10,
-                    standstill_sensitivity=10,
+                    moving_threshold=10,
+                    stopped_threshold=10,
                 )
 
     async def test_module_restart_with_context_close(self, device):
@@ -312,28 +312,28 @@ class TestLD2410:
     @pytest.mark.parametrize(
         ('control', 'threshold', 'default'),
         [
-            (AuxiliaryControl.UNDER_THRESHOLD, 95, OutPinLevel.LOW),
-            (AuxiliaryControl.ABOVE_THRESHOLD, 156, OutPinLevel.HIGH),
+            (LightControl.BELOW, 95, OutPinLevel.LOW),
+            (LightControl.ABOVE, 156, OutPinLevel.HIGH),
         ],
     )
-    async def test_auxiliary(self, device, control, threshold, default):
-        """Check auxiliary controls."""
+    async def test_light(self, device, control, threshold, default):
+        """Check light controls."""
         async with device.configure():
-            await device.set_auxiliary_controls(
+            await device.set_light_control(
                 control=control,
                 threshold=threshold,
                 default=default,
             )
-            aux = await device.get_auxiliary_controls()
-            assert aux.control == control
-            assert aux.threshold == threshold & 0xFF
-            assert aux.default == default
+            light = await device.get_light_control()
+            assert light.control == control
+            assert light.threshold == threshold & 0xFF
+            assert light.default == default
 
-    async def test_auxiliary_missing_kwarg(self, device):
-        """Check auxiliary setter with a missing argument."""
+    async def test_light_missing_kwarg(self, device):
+        """Check light setter with a missing argument."""
         async with device.configure():
             with pytest.raises(CommandParamError, match='Missing parameters'):
-                await device.set_auxiliary_controls(threshold=24, default=OutPinLevel.LOW)
+                await device.set_light_control(threshold=24, default=OutPinLevel.LOW)
 
     async def test_good_basic_report(self, device):
         """Get a basic report and check for it."""
