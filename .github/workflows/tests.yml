@@ -1,11 +1,27 @@
-name: Test package with pytest
-on: [push, pull_request, workflow_dispatch]
+name: Test
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/test.yml'
+      - 'pyproject.toml'
+      - '**.py'
+    types:
+      - "opened"
+      - "synchronize"
+  push:
+    branches:
+      - "master"
+    paths:
+      - '.github/workflows/test.yml'
+      - 'pyproject.toml'
+      - '**.py'
+  workflow_dispatch:
 
 jobs:
-  pytest:
-    name: Run tests
+  test:
+    name: Test aio-ld2410 with pytest
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
@@ -30,14 +46,12 @@ jobs:
 
       - name: Upload pytest test results
         uses: actions/upload-artifact@v4
-        if: success() || failure()
         with:
           name: Test results (Python ${{ matrix.python-version }})
           path: pytest.xml
 
       - name: Upload coverage results
         uses: actions/upload-artifact@v4
-        if: success() || failure()
         with:
           name: Coverage results (Python ${{ matrix.python-version }})
           path: coverage.xml
@@ -48,20 +62,21 @@ jobs:
           name: Coverage with Python ${{ matrix.python-version }}
           token: ${{ secrets.CODECOV_TOKEN }}
           env_vars: PYTHON
+          fail_ci_if_error: true
           file: ./coverage.xml
           disable_search: true
           flags: unittests
+          verbose: true
 
-  publish-pytest:
+  publish-test-results:
     name: Publish tests results
     needs:
-      - pytest
+      - test
     runs-on: ubuntu-latest
 
     permissions:
       checks: write
       pull-requests: write
-    if: success() || failure()
 
     steps:
       - name: Download artifacts
@@ -73,3 +88,58 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           files: "artifacts/**/pytest.xml"
+
+  mypy:
+    name: Check typing with MyPy
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version:  ${{ matrix.python-version }}
+
+      - name: Install linting dependencies
+        run: make install-package install-linting
+
+      - name: MyPy
+        run: mypy --junit-xml=mypy.xml
+
+      - name: Upload type checking results
+        uses: actions/upload-artifact@v4
+        with:
+          name: Type checking results (Python ${{ matrix.python-version }})
+          path: mypy.xml
+
+  ruff:
+    name: Check linting and formating with ruff
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version:  ${{ matrix.python-version }}
+
+      - name: Install linting dependencies
+        run: make install-linting
+
+      - name: Run ruff with linting checks
+        run: ruff check --output-format=github
+
+      - name: Run ruff with format checks
+        run: ruff format --check --diff
