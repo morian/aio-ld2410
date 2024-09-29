@@ -4,22 +4,22 @@ Python asyncio LD2410 Library
 |licence| |version| |pyversions| |coverage| |docs| |openssf|
 
 .. |licence| image:: https://img.shields.io/pypi/l/aio-ld2410.svg
-   :target: https://pypi.python.org/pypi/aio-ld2410
+   :target: https://pypi.org/project/aio-ld2410/
 
 .. |version| image:: https://img.shields.io/pypi/v/aio-ld2410.svg
-   :target: https://pypi.python.org/pypi/aio-ld2410
+   :target: https://pypi.org/project/aio-ld2410/
 
 .. |pyversions| image:: https://img.shields.io/pypi/pyversions/aio-ld2410.svg
-   :target: https://pypi.python.org/pypi/aio-ld2410
+   :target: https://pypi.org/project/aio-ld2410/
 
 .. |coverage| image:: https://codecov.io/github/morian/aio-ld2410/graph/badge.svg
-   :target: https://codecov.io/github/morian/aio-ld2410
+   :target: https://app.codecov.io/github/morian/aio-ld2410
 
 .. |docs| image:: https://img.shields.io/readthedocs/aio-ld2410.svg
    :target: https://aio-ld2410.readthedocs.io/en/latest/
 
-.. |openssf| image:: https://bestpractices.coreinfrastructure.org/projects/9487/badge
-   :target: https://bestpractices.coreinfrastructure.org/projects/9487
+.. |openssf| image:: https://www.bestpractices.dev/projects/9487/badge?r
+   :target: https://www.bestpractices.dev/en/projects/9487
 
 ``aio-ld2410`` is a python library that allows interacting with the `Hi-Link LD2410`_ sensors
 using asyncio_.
