@@ -12,8 +12,6 @@ import inspect
 import os
 import sys
 
-from aio_ld2410 import version as release
-
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 project = 'aio-ld2410'
@@ -68,7 +66,48 @@ intersphinx_mapping = {
     'construct': ('https://construct.readthedocs.io/en/latest', None),
 }
 
-code_url = f'https://github.com/morian/aio-ld2410/blob/v{release}'
+
+## ReadTheDocs compatibility as we are using rtd-addons...
+## See https://about.readthedocs.com/blog/2024/07/addons-by-default/
+
+# Define the canonical URL if you are using a custom domain on Read the Docs
+html_baseurl = os.environ.get('READTHEDOCS_CANONICAL_URL', '')
+
+# Tell Jinja2 templates the build is running on Read the Docs
+if os.environ.get('READTHEDOCS') == 'True' or True:
+    if 'html_context' not in globals():
+        html_context = {}
+
+    # This is required by furo to display a link to the github repository.
+    # When furo will be updated everything should come to order.
+    html_context.update(
+        {
+            'github_user': 'morian',
+            'github_repo': 'aio-ld2410',
+            'display_github': True,
+            'slug': 'aio-ld2410',
+            'READTHEDOCS': True,
+        }
+    )
+
+
+def get_current_commit() -> str:
+    """Try to find out which commit we're building for."""
+    commit = 'master'
+
+    rtd_git_id = os.environ.get('READTHEDOCS_GIT_IDENTIFIER')
+    if rtd_git_id is not None and rtd_git_id.startswith('v'):
+        commit = rtd_git_id
+    else:
+        rtd_git_commit = os.environ.get('READTHEDOCS_GIT_COMMIT_HASH')
+        if rtd_git_commit is not None:
+            commit = rtd_git_commit
+
+    return commit
+
+
+commit = get_current_commit()
+code_url = f'https://github.com/morian/aio-ld2410/blob/{commit}'
 
 
 def linkcode_resolve(domain, info):
@@ -97,11 +136,11 @@ def linkcode_resolve(domain, info):
         return None
 
     file = os.path.relpath(file, os.path.abspath('..'))
-    if not file.startswith('aio_ld2410/'):
+    if not file.startswith('aio_ld2410'):
         # e.g. object is a typing.NewType
         return None
-    start, end = lines[1], lines[1] + len(lines[0]) - 1
 
+    start, end = lines[1], lines[1] + len(lines[0]) - 1
     return f'{code_url}/{file}#L{start}-L{end}'
 
 
