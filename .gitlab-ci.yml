@@ -33,6 +33,12 @@ build-docs:
   stage: build
   cache:
     <<: *pip_cache
+  only:
+    - master
+  variables:
+    # Just to make sure sphinx has correct links.
+    READTHEDOCS_GIT_IDENTIFIER: ${CI_COMMIT_REF_NAME}
+    READTHEDOCS_GIT_COMMIT_HASH: ${CI_COMMIT_SHA}
   needs: []
   before_script:
     - python -m venv venv
