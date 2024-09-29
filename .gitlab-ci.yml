@@ -35,6 +35,7 @@ build-docs:
     <<: *pip_cache
   only:
     - master
+    - tags
   variables:
     # Just to make sure sphinx has correct links.
     READTHEDOCS_GIT_IDENTIFIER: ${CI_COMMIT_REF_NAME}
