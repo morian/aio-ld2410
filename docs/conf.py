@@ -33,6 +33,7 @@ extensions = [
     'sphinx_copybutton',
     'sphinx_inline_tabs',
     'sphinx_autodoc_typehints',
+    'sphinxext.opengraph',
 ]
 
 templates_path = ['_templates']
@@ -80,8 +81,10 @@ intersphinx_mapping = {
 # Define the canonical URL if you are using a custom domain on Read the Docs
 html_baseurl = os.environ.get('READTHEDOCS_CANONICAL_URL', '')
 
+ogp_site_url = 'https://aio-ld2410.readthedocs.io/en/latest/'
+
 # Tell Jinja2 templates the build is running on Read the Docs
-if os.environ.get('READTHEDOCS') == 'True' or True:
+if os.environ.get('READTHEDOCS') == 'True':
     if 'html_context' not in globals():
         html_context = {}
 
@@ -114,7 +117,8 @@ def get_current_commit() -> str:
 
 
 commit = get_current_commit()
-code_url = f'https://github.com/morian/aio-ld2410/blob/{commit}'
+# branch = get_current_branch()
+repo_url = 'https://github.com/morian/aio-ld2410/'
 
 
 def linkcode_resolve(domain, info):
@@ -148,7 +152,7 @@ def linkcode_resolve(domain, info):
         return None
 
     start, end = lines[1], lines[1] + len(lines[0]) - 1
-    return f'{code_url}/{file}#L{start}-L{end}'
+    return f'{repo_url}/blob/{commit}/{file}#L{start}-L{end}'
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -157,8 +161,8 @@ def linkcode_resolve(domain, info):
 html_theme = 'furo'
 
 html_theme_options = {
-    'source_repository': 'https://github.com/morian/aio-ld2410/',
-    'source_branch': 'master',
+    'source_repository': repo_url,
+    'source_branch': commit,
     'source_directory': 'docs/',
     'light_css_variables': {
         'color-brand-primary': '#306998',  # blue from logo
@@ -169,6 +173,7 @@ html_theme_options = {
         'color-brand-content': '#ffd43bd9',  # yellow from logo, transparent like text
     },
     'sidebar_hide_name': True,
+    'top_of_page_buttons': ['view'],
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

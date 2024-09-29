@@ -94,8 +94,8 @@ Participants must uphold the `code of conduct`_.
 .. _issue: https://github.com/morian/aio-ld2410/issues/new
 .. _pull request: https://github.com/morian/aio-ld2410/compare/
 .. _start a discussion: https://github.com/morian/aio-ld2410/discussions
-.. _code of conduct: https://github.com/python-websockets/websockets/blob/main/CODE_OF_CONDUCT.md
+.. _code of conduct: https://github.com/morian/aio-ld2410/blob/master/CODE_OF_CONDUCT.md
 
 ``aio-ld2410`` is released under the `MIT license`_.
 
-.. _MIT license: https://github.com/morian/aio-ld2410/blob/main/LICENSE
+.. _MIT license: https://github.com/morian/aio-ld2410/blob/master/LICENSE
