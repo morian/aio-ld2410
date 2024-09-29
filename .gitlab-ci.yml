@@ -37,9 +37,11 @@ build-docs:
     - master
     - tags
   variables:
-    # Just to make sure sphinx has correct links.
+    # Ensure that sphinx has the correct identifies (see docs/conf.py).
     READTHEDOCS_GIT_IDENTIFIER: ${CI_COMMIT_REF_NAME}
     READTHEDOCS_GIT_COMMIT_HASH: ${CI_COMMIT_SHA}
+    READTHEDOCS_VERSION_TYPE: 'tag'
+    READTHEDOCS_VERSION_NAME: ${CI_COMMIT_TAG}
   needs: []
   before_script:
     - python -m venv venv

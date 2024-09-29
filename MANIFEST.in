@@ -1,5 +1,6 @@
 include LICENSE
 include CHANGELOG.rst
+include CONTRIBUTING.rst
 include README.rst
 
 global-exclude __pycache__

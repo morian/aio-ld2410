@@ -27,13 +27,13 @@ using asyncio_.
 .. _Hi-Link LD2410: https://hlktech.net/index.php?id=988
 .. _asyncio: https://docs.python.org/3/library/asyncio.html
 
-Such radar sensor would typically requires an USB-UART adapter on most computers but is
-natively included on most embedded such as the `Raspberry Pi`_.
+Such radar sensor would typically require an USB-UART adapter on most computers but is
+natively included on most embedded platforms such as the `Raspberry Pi`_.
 
 .. _Raspberry Pi: https://www.raspberrypi.com/
 
 This library supports a wide range of variants in terms of models and firmware versions,
-and was mostly tested on LD2410C_ with firmware ``v2.04.23022511``.
+but was mostly tested on LD2410C_ with firmware ``v2.04.23022511``.
 
 It features comprehensible methods to get and set various configuration parameters,
 as well as dataclasses_ for output results and sensor reports.
@@ -45,7 +45,7 @@ as well as dataclasses_ for output results and sensor reports.
 Installation
 ------------
 
-This package requires Python 3.9 or later and pulls a few other packages as dependencies.
+This package requires Python ≥ 3.9 and pulls a few other packages as dependencies.
 
 To install ``aio-ld2410``, simply run the following command:
 

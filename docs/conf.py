@@ -21,9 +21,9 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
-project = 'aio-ld2410'
-copyright = '2024, Romain Bezut'
 author = 'Romain Bezut'
+project = 'aio-ld2410'
+copyright = f'2024, {author}'
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -44,8 +44,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # Nitpick configuration
 nitpicky = True
 nitpick_ignore = [
-    # See https://github.com/sphinx-doc/sphinx/issues/12867
-    ('py:class', '_io.BytesIO'),
+    # construct does not document `Container` which is an `OrderedDict`.
     ('py:class', 'construct.lib.containers.Container'),
 ]
 
@@ -74,15 +73,19 @@ intersphinx_mapping = {
     'construct': ('https://construct.readthedocs.io/en/latest', None),
 }
 
+# OpenGraph
+ogp_site_url = os.environ.get(
+    'READTHEDOCS_CANONICAL_URL',
+    'https://aio-ld2410.readthedocs.io/en/stable/',
+)
+ogp_image = '_static/aio-ld2410.png'
 
-## ReadTheDocs compatibility as we are using rtd-addons...
+
+## ReadTheDocs compatibility as we're using rtd-addons.
 ## See https://about.readthedocs.com/blog/2024/07/addons-by-default/
 
 # Define the canonical URL if you are using a custom domain on Read the Docs
 html_baseurl = os.environ.get('READTHEDOCS_CANONICAL_URL', '')
-
-ogp_site_url = 'https://aio-ld2410.readthedocs.io/en/latest/'
-ogp_image = '_static/aio-ld2410.png'
 
 # Tell Jinja2 templates the build is running on Read the Docs
 if os.environ.get('READTHEDOCS') == 'True':
@@ -104,21 +107,18 @@ if os.environ.get('READTHEDOCS') == 'True':
 
 def get_current_commit() -> str:
     """Try to find out which commit we're building for."""
-    commit = 'master'
-
-    rtd_git_id = os.environ.get('READTHEDOCS_GIT_IDENTIFIER')
-    if rtd_git_id is not None and rtd_git_id.startswith('v'):
-        commit = rtd_git_id
+    # READTHEDOCS_GIT_IDENTIFIER does not seem to contain the tag name.
+    ver_type = os.environ.get('READTHEDOCS_VERSION_TYPE', '')
+    ver_name = os.environ.get('READTHEDOCS_VERSION_NAME', '')
+    if ver_type == 'tag' and ver_name.startswith('v'):
+        commit = ver_name
     else:
-        rtd_git_commit = os.environ.get('READTHEDOCS_GIT_COMMIT_HASH')
-        if rtd_git_commit is not None:
-            commit = rtd_git_commit
+        commit = os.environ.get('READTHEDOCS_GIT_COMMIT_HASH', 'master')
 
     return commit
 
 
 commit = get_current_commit()
-# branch = get_current_branch()
 repo_url = 'https://github.com/morian/aio-ld2410/'
 
 
