@@ -82,6 +82,7 @@ intersphinx_mapping = {
 html_baseurl = os.environ.get('READTHEDOCS_CANONICAL_URL', '')
 
 ogp_site_url = 'https://aio-ld2410.readthedocs.io/en/latest/'
+ogp_image = '_static/aio-ld2410.png'
 
 # Tell Jinja2 templates the build is running on Read the Docs
 if os.environ.get('READTHEDOCS') == 'True':
