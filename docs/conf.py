@@ -12,6 +12,13 @@ import inspect
 import os
 import sys
 
+# -- Path setup --------------------------------------------------------------
+
+# This seems somehow necessary to have linkcode work properly on ReadTheDocs.
+# See https://github.com/readthedocs/readthedocs.org/issues/2139#issuecomment-352188629
+sys.path.insert(0, os.path.abspath('..'))
+
+
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 project = 'aio-ld2410'
