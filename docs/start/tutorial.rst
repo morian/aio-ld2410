@@ -14,7 +14,7 @@ Before going further on this tutorial, make sure to have a suitable python envir
 Connecting to the device
 ------------------------
 
-First you need to identify your device and its name depends on your platform!
+First you need to identify your device, its name depends on your platform!
 You can ask pyserial_ to list all available console devices on your system:
 
 .. _pyserial: https://github.com/pyserial/pyserial/tree/master
@@ -49,12 +49,12 @@ Entering the configuration mode
 
 Entering configuration mode is also implemented as an asynchronous context.
 You cannot call configuration commands outside of this context!
-This context is a requirement before any other command is issued.
+This context is a requirement before any other command can be issued.
 
 .. seealso::
    :meth:`LD2410.configure` for more details.
 
-In the following example the configuration context spread over the emphasized lines:
+In the following example the configuration context spreads over the emphasized lines:
 
 .. literalinclude:: ../../examples/read_firmware_version.py
    :caption: examples/read_firmware_version.py
@@ -109,7 +109,7 @@ Distance resolution
    :class: warning
 
    This command seems to only be available for ``LD2410B`` and ``LD2410C`` devices
-   with a (quite recent) firmware.
+   with a (quite) recent firmware.
 
 Using :meth:`LD2410.get_distance_resolution` we can read the range covered by gates:
 
@@ -190,7 +190,7 @@ commands to the device (as it is restarting).
 Reading reports
 ---------------
 
-Reports are push by the device to the serial link regularly and contain detection results.
+Reports are pushed by the device to the serial link regularly and contain detection results.
 Advanced reports cat be requested using the engineering mode, which will not be covered in
 this tutorial
 

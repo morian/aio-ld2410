@@ -60,7 +60,7 @@ The following table tells the range covered by each gate depending on the distan
 resolution setting:
 
 +-----------------------++-----------------------+
-|     75cm resolution   ||     25cm resolution   |
+|     75cm resolution   ||     20cm resolution   |
 +======+========+=======++======+========+=======+
 | Gate |  Start |  End  || Gate |  Start |  End  |
 +------+--------+-------++------+--------+-------+
@@ -88,8 +88,8 @@ resolution setting:
 Energy and sensitivity
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Each gate is configured individually with two energy thresholds, one for moving targets,
-and on for static targets. When the reading energy value is above the configured threshold,
+Each gate is configured individually with two energy thresholds, one for moving targets
+and one for static targets. When the reading energy value is above the configured threshold,
 a target is detected (either as moving or standing still).
 
 Both reported energies and threshold have values ranging from 0 to 100.
@@ -124,6 +124,6 @@ It depends on whether the engineering mode is currently enabled or not.
 To send commands to the device, we first have to put it in the configuration mode.
 During this phase, status reports are no longer being generated.
 
-All command requests sent to the device must be performed in configuration mode or the device
-will simply send back an error status. Also note that some commands require a device restart
-to be effective.
+All command requests sent to the device have to be performed in configuration mode, otherwise
+the device will simply send back an error status. Also note that some commands require a device
+restart to be effective.
