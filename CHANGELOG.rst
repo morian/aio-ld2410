@@ -8,6 +8,19 @@ The format is based on `Keep a Changelog`_ and this project adheres to `Semantic
 .. _Semantic Versioning: https://semver.org/spec/v2.0.0.html
 
 
+1.0.1 (2024-10-09)
+==================
+
+Added
+-----
+- Support for Python 3.13
+
+Fixed
+-----
+- Many errors and typos in documentation
+- Test framework was simplified a bit
+
+
 1.0.0 (2024-09-29)
 ==================
 
@@ -32,7 +45,6 @@ Changed
 - Reworked :class:`stream.FrameStream` with a real iterator
 
 .. _ESPHome: https://github.com/esphome/esphome
-
 
 Fixed
 -----

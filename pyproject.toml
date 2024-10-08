@@ -41,7 +41,7 @@ requires-python = '>=3.9'
 [project.urls]
 Changelog = 'https://github.com/morian/aio-ld2410/blob/master/CHANGELOG.rst'
 Coverage = 'https://app.codecov.io/github/morian/aio-ld2410'
-Documentation = 'https://aio-ld2410.readthedocs.io/en/latest/'
+Documentation = 'https://aio-ld2410.readthedocs.io'
 Homepage = 'https://pypi.org/project/aio-ld2410/'
 Issues = 'https://github.com/morian/aio-ld2410/issues'
 Repository = 'https://github.com/morian/aio-ld2410'

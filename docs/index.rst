@@ -19,9 +19,9 @@ Asyncio LD2410 Library
    :target: https://app.codecov.io/github/morian/aio-ld2410
 
 .. |docs| image:: https://img.shields.io/readthedocs/aio-ld2410.svg
-   :target: https://aio-ld2410.readthedocs.io/en/latest/
+   :target: https://aio-ld2410.readthedocs.io/
 
-.. |openssf| image:: https://www.bestpractices.dev/projects/9487/badge?r
+.. |openssf| image:: https://www.bestpractices.dev/projects/9487/badge
    :target: https://www.bestpractices.dev/en/projects/9487
 
 ``aio-ld2410`` is a python library that allows interacting with the `Hi-Link LD2410`_ sensors

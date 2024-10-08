@@ -17,7 +17,7 @@ Connecting to the device
 First you need to identify your device, its name depends on your platform!
 You can ask pyserial_ to list all available console devices on your system:
 
-.. _pyserial: https://github.com/pyserial/pyserial/tree/master
+.. _pyserial: https://github.com/pyserial/pyserial/
 
 .. code-block:: console
 
