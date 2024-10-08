@@ -16,7 +16,7 @@ variables:
 
 
 build-package:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
   stage: build
   cache:
     <<: *pip_cache
@@ -29,13 +29,10 @@ build-package:
       - dist/
 
 build-docs:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
   stage: build
   cache:
     <<: *pip_cache
-  only:
-    - master
-    - tags
   variables:
     # Ensure that sphinx has the correct identifies (see docs/conf.py).
     READTHEDOCS_GIT_IDENTIFIER: ${CI_COMMIT_REF_NAME}
@@ -55,7 +52,7 @@ build-docs:
       - docs/_build/html
 
 linting:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
   stage: tests
   cache:
     <<: *pip_cache
@@ -75,7 +72,7 @@ linting:
   allow_failure: true
 
 typing:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
   stage: tests
   cache:
     <<: *pip_cache
@@ -93,7 +90,7 @@ typing:
   allow_failure: true
 
 tests:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
   stage: tests
   needs: []
   cache:
@@ -114,8 +111,11 @@ tests:
       junit: pytest.xml
 
 pages:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
   stage: publish
+  only:
+    - master
+    - tags
   needs:
     - build-docs
   script:
@@ -126,7 +126,7 @@ pages:
       - public
 
 publish-package:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
   stage: publish
   variables:
     TWINE_REPOSITORY_URL: ${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/packages/pypi
