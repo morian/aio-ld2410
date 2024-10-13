@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from asyncio import Event
+from asyncio import Event, Lock
 from contextlib import AsyncExitStack, suppress
 from dataclasses import asdict, is_dataclass
 from enum import IntEnum
@@ -62,7 +62,7 @@ def need_configuration_mode(func):
 
 
 class EmulatedDevice:
-    """Emulate a fake device for test purpose."""
+    """Emulate a fake LD2410 device for test purpose."""
 
     def __init__(self, reader: StreamReader, writer: StreamWriter) -> None:
         """Create a new emulated LD2410 device from a generic reader/writer."""
@@ -103,7 +103,7 @@ class EmulatedDevice:
         self._status = DeviceStatus()
         self._reader = reader
         self._writer = writer
-        self._write_lock = asyncio.Lock()
+        self._write_lock = Lock()
 
     def _build_reply(
         self,
@@ -358,7 +358,7 @@ class EmulatedDevice:
             self._closing.set()
 
     async def _report_task(self) -> None:
-        """Report tasks regularly."""
+        """Generate sensor reports regularly."""
         while True:
             await asyncio.sleep(0.1)
             try:

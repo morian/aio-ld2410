@@ -1,6 +1,6 @@
 furo==2024.8.6
-sphinx==8.0.2
-sphinx_autodoc_typehints==2.4.4
+sphinx==8.1.2
+sphinx_autodoc_typehints==2.5.0
 sphinx_copybutton==0.5.2
 sphinx_inline_tabs==2023.4.21
 sphinxext_opengraph==0.9.1

@@ -25,7 +25,7 @@ from aio_ld2410.protocol import ReportFrame
 
 from .emulator import EmulatorCode, EmulatorCommand
 
-# All test coroutines will be treated as marked.
+# All test coroutines will be treated as marked for anyio.
 pytestmark = pytest.mark.anyio
 
 
@@ -47,9 +47,9 @@ class FakeLD2410(LD2410):
 
 
 @pytest.fixture
-def raw_device(fake_device_socket):
+def raw_device(emulation_server):
     """A raw non-entered device."""
-    return FakeLD2410(fake_device_socket)
+    return FakeLD2410(emulation_server)
 
 
 @pytest.fixture

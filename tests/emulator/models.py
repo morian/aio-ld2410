@@ -44,27 +44,54 @@ _DefaultLight = LightControlStatus(
 
 
 class EmulatorCode(IntEnum):
-    """All kind of emulator-specific commands."""
+    """
+    Emulator-specific commands codes.
 
+    These are used to control the behavior of the emulator through
+    a REPORT frame sent from the client to the fake device.
+
+    """
+
+    #: Tell the emulator to disconnect immediately.
     DISCONNECT_NOW = auto()
+
+    #: Tell the emulator to disconnect after the next command is received.
     DISCONNECT_AFTER_COMMAND = auto()
+
+    #: Generate and push a corrupted frame immediately.
     GENERATE_CORRUPTED_FRAME = auto()
+
+    #: Generate and push a corrupted reply frame.
     GENERATE_CORRUPTED_COMMAND = auto()
+
+    #: Generate and push an unsolicited reply frame immediately.
     GENERATE_SPURIOUS_REPLY = auto()
+
+    #: The next DISTANCE_RESOLUTION_GET command will receive an invalid resolution index.
     RETURN_INVALID_RESOLUTION = auto()
 
 
 @dataclass
 class EmulatorCommand:
-    """A command sent to the emulator."""
+    """
+    Emulator-specific commands.
 
+    These are used to control the behavior of the emulator through a REPORT
+    frame sent from the client to the fake device. ``data`` is currently
+    unused because no emulator require additional data.
+
+    """
+
+    #: Command core sent to the emulator.
     code: EmulatorCode
+
+    #: Additional parameters for the command code (unused for now).
     data: Mapping[str, Any] | None = None
 
 
 @dataclass
 class DeviceStatus:
-    """Contains the internal state of a device."""
+    """Internal state of the emulated device."""
 
     baud_rate = BaudRateIndex.RATE_256000
     configuring: bool = False
