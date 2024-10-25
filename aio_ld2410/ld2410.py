@@ -73,7 +73,8 @@ def configuration(
 
     """
     if not asyncio.iscoroutinefunction(func):
-        raise RuntimeError('@configuration decorator is only suitable for async methods.')
+        msg = '@configuration decorator is only suitable for async methods.'
+        raise RuntimeError(msg)
 
     @functools.wraps(func)
     async def _check_config_context(
@@ -82,7 +83,8 @@ def configuration(
         **kwargs: _ParamSpec.kwargs,
     ) -> _T:
         if not self.configuring:
-            raise CommandContextError('This method requires a configuration context')
+            msg = 'This method requires a configuration context'
+            raise CommandContextError(msg)
         return await func(self, *args, **kwargs)
 
     return _check_config_context
@@ -167,8 +169,8 @@ class LD2410:
 
         """
         if self.entered:
-            raise RuntimeError("LD2410's instance is already entered!")
-
+            msg = "LD2410's instance is already entered!"
+            raise RuntimeError(msg)
         context = await AsyncExitStack().__aenter__()
         try:
             reader, writer = await self._open_serial_connection()
@@ -285,7 +287,8 @@ class LD2410:
         command = Command.build({'code': code, 'data': args})
         async with self._request_lock:
             if not self.connected:
-                raise ConnectionClosedError('We are not connected to the device anymore!')
+                msg = 'We are not connected to the device anymore!'
+                raise ConnectionClosedError(msg)
 
             async with timeout(self._command_timeout):
                 frame = CommandFrame.build({'data': command})
@@ -302,7 +305,8 @@ class LD2410:
                     reply = await replies.get()
                     replies.task_done()
                     if reply is None:
-                        raise ConnectionClosedError('Device has disconnected')
+                        msg = 'Device has disconnected'
+                        raise ConnectionClosedError(msg)
 
                     valid_reply = bool(code == int(reply.code))
                     if not valid_reply:
@@ -311,7 +315,8 @@ class LD2410:
         # MyPy does not see that reply cannot be None on here.
         reply = cast(ConstructReply, reply)
         if int(reply.status) != ReplyStatus.SUCCESS:
-            raise CommandStatusError(f'Command {code} received bad status: {reply.status}')
+            msg = f'Command {code} received bad status: {reply.status}'
+            raise CommandStatusError(msg)
 
         return reply
 
@@ -398,7 +403,8 @@ class LD2410:
             return 20
         if index == ResolutionIndex.RESOLUTION_75CM:
             return 75
-        raise CommandReplyError(f'Unhandled distance resolution index {index}')
+        msg = f'Unhandled distance resolution index {index}'
+        raise CommandReplyError(msg)
 
     @configuration
     async def get_firmware_version(self) -> FirmwareVersion:
@@ -585,7 +591,8 @@ class LD2410:
         self._restarted = True
 
         if close_config_context:
-            raise ModuleRestartedError("Module is being restarted from user's request.")
+            msg = "Module is being restarted from user's request."
+            raise ModuleRestartedError(msg)
 
     @configuration
     async def set_baud_rate(self, baud_rate: int) -> None:
@@ -610,7 +617,8 @@ class LD2410:
         try:
             index = BaudRateIndex.from_integer(baud_rate)
         except KeyError:
-            raise CommandParamError(f'Unknown index for baud rate {baud_rate}') from None
+            msg = f'Unknown index for baud rate {baud_rate}'
+            raise CommandParamError(msg) from None
 
         await self._request(CommandCode.BAUD_RATE_SET, {'index': int(index)})
 
@@ -650,9 +658,8 @@ class LD2410:
 
         """
         if len(password) > 6 or not password.isascii():
-            raise CommandParamError(
-                'Bluetooth password must have less than 7 ASCII characters.'
-            )
+            msg = 'Bluetooth password must have less than 7 ASCII characters.'
+            raise CommandParamError(msg)
         await self._request(CommandCode.BLUETOOTH_PASSWORD_SET, {'password': password})
 
     @configuration
@@ -682,7 +689,8 @@ class LD2410:
         if resolution == 20:
             index = ResolutionIndex.RESOLUTION_20CM
         elif resolution != 75:
-            raise CommandParamError(f'Unknown index for distance resolution {resolution}')
+            msg = f'Unknown index for distance resolution {resolution}'
+            raise CommandParamError(msg)
         await self._request(CommandCode.DISTANCE_RESOLUTION_SET, {'resolution': index})
 
     @configuration
@@ -743,7 +751,8 @@ class LD2410:
         data = LightControlConfig(**kwargs)
         missing = LightControlConfig.__required_keys__.difference(data.keys())
         if missing:
-            raise CommandParamError(f'Missing parameters: {set(missing)}')
+            msg = f'Missing parameters: {set(missing)}'
+            raise CommandParamError(msg)
         await self._request(CommandCode.LIGHT_CONTROL_SET, data)
 
     @configuration
@@ -783,7 +792,8 @@ class LD2410:
         data = ParametersConfig(**kwargs)
         missing = ParametersConfig.__required_keys__.difference(data.keys())
         if missing:
-            raise CommandParamError(f'Missing parameters: {set(missing)}')
+            msg = f'Missing parameters: {set(missing)}'
+            raise CommandParamError(msg)
         await self._request(CommandCode.PARAMETERS_WRITE, data)
 
     @configuration
@@ -823,5 +833,6 @@ class LD2410:
         data = GateSensitivityConfig(**kwargs)
         missing = GateSensitivityConfig.__required_keys__.difference(data.keys())
         if missing:
-            raise CommandParamError(f'Missing parameters: {set(missing)}')
+            msg = f'Missing parameters: {set(missing)}'
+            raise CommandParamError(msg)
         await self._request(CommandCode.GATE_SENSITIVITY_SET, data)

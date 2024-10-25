@@ -28,6 +28,7 @@ from .version import version
 
 __version__ = version
 __all__ = [
+    'LD2410',
     'AioLd2410Error',
     'BaudRateIndex',
     'CommandContextError',
@@ -39,7 +40,6 @@ __all__ = [
     'ConnectionClosedError',
     'FirmwareVersion',
     'GateSensitivityConfig',
-    'LD2410',
     'LightControl',
     'LightControlConfig',
     'LightControlStatus',

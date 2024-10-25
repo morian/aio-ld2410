@@ -16,6 +16,9 @@ _TRACES = {
 
 @pytest.mark.parametrize(('type_', 'trace'), _TRACES.items())
 def test_good_reports(type_, trace):
-    frame = ReportFrame.parse(bytes.fromhex(trace))
+    raw = bytes.fromhex(trace)
+    frame = ReportFrame.parse(raw)
     report = Report.parse(frame.data)
-    print(report)
+    report_rebuild = Report.build(report)
+    frame_rebuild = ReportFrame.build({'data': report_rebuild})
+    assert frame_rebuild == raw

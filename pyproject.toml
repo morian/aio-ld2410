@@ -108,9 +108,11 @@ select = [
 	'D',      # pydocstyle
 	'DTZ',    # flake8-datetimez
 	'E',      # pycodestyle errors
+	'ERA',    # eradicate
 	'F',      # Pyflakes
 	'FA',     # flake8-future-annotations
 	'I',      # isort
+	'INP',    # flake8-no-pep420
 	'LOG',    # flake8-logging
 	'N',      # pep8-naming
 	'PIE',    # flake8-pie
@@ -123,7 +125,9 @@ select = [
 	'S',      # flake8-bandit
 	'SIM',    # flake8-simplify
 	'SLF',    # flake8-self
+	'T20',    # flake8-print
 	'TCH',    # flake8-type-checking
+	'TRY',    # tryceratops
 	'UP',     # pyupgrade
 	'W',      # pycodestyle warnings
 ]
@@ -158,9 +162,11 @@ max-complexity = 10
 
 [tool.ruff.lint.per-file-ignores]
 'docs/conf.py' = [
-	'A001',  # Variable is shadowing a Python builtin
-	'E402',  # Module level import not at top of file
-	'F401',  # aio_ld2410.version imported but unused
+	'A001',   # Variable is shadowing a Python builtin
+	'E402',   # Module level import not at top of file
+	'E266',   # Too many leading `#` before block comment
+	'INP001', # File is part of an implicit namespace package
+	'F401',   # aio_ld2410.version imported but unused
 ]
 'tests/*.py' = [
 	'D',      # pydocstyle

@@ -94,8 +94,6 @@ def test_commands(code, trace):
     frame_rebuild = CommandFrame.build({'data': command_rebuild})
     assert frame_rebuild == raw
 
-    print(command)
-
 
 @pytest.mark.parametrize(('code', 'trace'), _REPLY_TRACES.items())
 def test_replies(code, trace):
@@ -111,5 +109,3 @@ def test_replies(code, trace):
     # Rebuild the frame around the command and check it.
     frame_rebuild = CommandFrame.build({'data': reply_rebuild})
     assert frame_rebuild == raw
-
-    print(reply)

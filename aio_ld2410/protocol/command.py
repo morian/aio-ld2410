@@ -160,7 +160,7 @@ _CommandSwitch = Switch(
         CommandCode.CONFIG_DISABLE: Pass,
         # The following configuration is lost on restart.
         CommandCode.CONFIG_ENABLE: Struct('value' / Const(1, Int16ul)),
-        ## The following commands are only available on LD2410C.
+        # All the following commands are only available on LD2410C.
         # The following command is only available through bluetooth.
         CommandCode.BLUETOOTH_AUTHENTICATE: Struct(
             'password' / PaddedString(6, 'ascii'),
@@ -225,7 +225,7 @@ _ReplySwitch = Switch(
             'protocol_version' / Int16ul,
             'buffer_size' / Int16ul,
         ),
-        ## The following replies can only be received on LD2410C.
+        # All the following replies can only be received on LD2410C.
         CommandCode.BLUETOOTH_AUTHENTICATE: Pass,
         CommandCode.BLUETOOTH_PASSWORD_SET: Pass,
         CommandCode.DISTANCE_RESOLUTION_SET: Pass,

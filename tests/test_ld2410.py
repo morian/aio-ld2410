@@ -5,7 +5,11 @@ import json
 import logging
 
 # Python 3.9 and lower have a distinct class for asyncio.TimeoutError.
-from asyncio import StreamReader, StreamWriter, TimeoutError
+from asyncio import (
+    StreamReader,
+    StreamWriter,
+    TimeoutError as AsyncTimeoutError,
+)
 from dataclasses import asdict
 
 import pytest
@@ -359,7 +363,7 @@ class TestLD2410:
     async def test_no_report_while_config(self, device):
         """Check that we get no report while configuring."""
         async with device.configure():
-            with pytest.raises(TimeoutError):
+            with pytest.raises(AsyncTimeoutError):
                 # 500ms is enough since we generate a report every 100ms.
                 await asyncio.wait_for(device.get_next_report(), timeout=0.5)
 
