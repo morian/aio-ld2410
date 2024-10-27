@@ -781,7 +781,7 @@ class LD2410:
 
 
         See Also:
-            :class:`set_gate_sensitivity` to set additional parameters.
+            :meth:`set_gate_sensitivity` to set additional parameters.
 
         Raises:
             CommandContextError: when called outside of the configuration context.
