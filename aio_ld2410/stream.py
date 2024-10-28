@@ -68,7 +68,13 @@ class FrameStream:
         return count
 
     def __iter__(self) -> Iterator[ConstructFrame]:
-        """Iterate over full frames from the internal buffer."""
+        """
+        Iterate over full frames from the internal buffer.
+
+        Yields:
+            Frames received from the device.
+
+        """
         parsing = True
 
         while parsing:

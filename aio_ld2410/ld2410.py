@@ -338,7 +338,7 @@ class LD2410:
                 async with dev.configure():
                     # Some configuration commands
 
-        Returns:
+        Yields:
             Device's protocol information.
 
             This is the standard reply for command :attr:`.CommandCode.CONFIG_ENABLE`.
@@ -510,7 +510,7 @@ class LD2410:
             Must be called outside of the configuration context as no report is being
             generated in configuration mode.
 
-        Returns:
+        Yields:
             An asynchronous iterator for :class:`.ReportStatus`.
 
         """
