@@ -4,16 +4,18 @@ on:
   pull_request:
     paths:
       - '.github/workflows/test.yml'
+      - 'tests/requirements-*.txt'
       - 'pyproject.toml'
       - '**.py'
     types:
-      - "opened"
-      - "synchronize"
+      - 'opened'
+      - 'synchronize'
   push:
     branches:
-      - "master"
+      - 'master'
     paths:
       - '.github/workflows/test.yml'
+      - 'tests/requirements-*.txt'
       - 'pyproject.toml'
       - '**.py'
   workflow_dispatch:
@@ -27,7 +29,7 @@ jobs:
       matrix:
         # 3.9 was removed from this matrix due to an issue with the test framework.
         # This is not worth investigating more since it will be unsupported "soon".
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ['3.10', '3.11', '3.12', '3.13']
 
     steps:
       - name: Repository checkout
@@ -87,7 +89,7 @@ jobs:
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          files: "artifacts/**/pytest.xml"
+          files: 'artifacts/**/pytest.xml'
 
   mypy:
     name: Check typing with MyPy
@@ -95,7 +97,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13"]
+        python-version: ['3.12', '3.13']
 
     steps:
       - name: Repository checkout
@@ -124,7 +126,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13"]
+        python-version: ['3.12', '3.13']
 
     steps:
       - name: Repository checkout

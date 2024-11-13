@@ -132,7 +132,7 @@ select = [
 	'W',      # pycodestyle warnings
 ]
 ignore = [
-	'COM812', # missing-trailing-comma
+	'COM812', # Missing trailing comma
 	'D100',   # Missing docstring in public module
 	'D104',   # Missing docstring in public package
 	'D203',   # 1 blank line required before class docstring
@@ -146,7 +146,7 @@ detect-same-package = false
 known-first-party = ['aio_ld2410']
 force-wrap-aliases = true
 split-on-trailing-comma = false
-required-imports = ["from __future__ import annotations"]
+required-imports = ['from __future__ import annotations']
 
 [tool.ruff.lint.flake8-type-checking]
 runtime-evaluated-base-classes = ['typing.TypedDict']
