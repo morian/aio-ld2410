@@ -10,8 +10,11 @@ from .command import OutPinLevel
 class ReportType(IntEnum):
     """Type of report we received."""
 
-    ENGINEERING = 1  #: Advanced report with per-gate values.
-    BASIC = 2  #: Basic report for an easy use.
+    #: Advanced report with per-gate values.
+    ENGINEERING = 1
+
+    #: Basic report for an easy use.
+    BASIC = 2
 
 
 class TargetStatus(IntFlag):
@@ -20,8 +23,6 @@ class TargetStatus(IntFlag):
 
     This field is present in reports and tells whether the target (if any)
     is static, moving or both.
-
-    Note that this class derives from :class:`enum.IntFlag`.
 
     """
 

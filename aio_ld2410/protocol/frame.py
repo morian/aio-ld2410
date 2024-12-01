@@ -13,7 +13,9 @@ FRAME_FOOTER_REPORT = b'\xf8\xf7\xf6\xf5'
 class FrameType(IntEnum):
     """All known frame types handled by the device."""
 
+    #: This frame is a command or reply frame.
     COMMAND = 1
+    #: This frame is a report frame.
     REPORT = 2
 
 

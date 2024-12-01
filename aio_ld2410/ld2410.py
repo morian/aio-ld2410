@@ -341,9 +341,12 @@ class LD2410:
         Yields:
             Device's protocol information.
 
-            This is the standard reply for command :attr:`.CommandCode.CONFIG_ENABLE`.
+            This is the standard reply for command :attr:`~.CommandCode.CONFIG_ENABLE`.
 
             You most likely don't need this returned value.
+
+        Returns:
+            An asynchronous iterator (seel YIELDS).
 
         """
         async with self._config_lock:
@@ -512,6 +515,9 @@ class LD2410:
 
         Yields:
             An asynchronous iterator for :class:`.ReportStatus`.
+
+        Returns:
+            An asynchronous iterator (seel YIELDS).
 
         """
         while True:

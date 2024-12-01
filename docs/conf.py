@@ -11,6 +11,18 @@ import importlib
 import inspect
 import os
 import sys
+from typing import TYPE_CHECKING
+
+from sphinx.ext.intersphinx import missing_reference
+from sphinx.util.inspect import TypeAliasForwardRef
+
+if TYPE_CHECKING:
+    from docutils import nodes
+    from docutils.nodes import TextElement
+    from sphinx.addnodes import pending_xref
+    from sphinx.application import Sphinx
+    from sphinx.config import Config
+    from sphinx.environment import BuildEnvironment
 
 # -- Path setup --------------------------------------------------------------
 
@@ -23,6 +35,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 author = 'Romain Bezut'
 project = 'aio-ld2410'
+package = project.replace('-', '_')
 copyright = f'2024, {author}'
 
 extensions = [
@@ -49,6 +62,7 @@ nitpick_ignore = [
 ]
 
 # Napoleon settings
+napoleon_preprocess_types = True
 napoleon_use_admonition_for_notes = True
 
 # Autodoc
@@ -69,9 +83,22 @@ typehints_use_rtype = False
 
 # InterSphinx
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
     'construct': ('https://construct.readthedocs.io/en/latest', None),
+    'python': ('https://docs.python.org/3', None),
 }
+# Map of references known to be broken by default.
+# We register a custom mapper linked to intersphinx.
+_reftarget_fixmap = {
+    'asyncio.locks.Condition': 'asyncio.Condition',
+    'asyncio.streams.StreamReader': 'asyncio.StreamReader',
+    'asyncio.streams.StreamWriter': 'asyncio.StreamWriter',
+}
+# Map of known types that get badly requested to be a class.
+_reftype_fixmap = {
+    'typing.Annotated': 'obj',
+    'typing.Self': 'obj',
+}
+
 
 # OpenGraph
 ogp_site_url = os.environ.get(
@@ -160,7 +187,6 @@ def linkcode_resolve(domain, info):
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'furo'
-
 html_theme_options = {
     'source_repository': repo_url,
     'source_branch': commit,
@@ -181,12 +207,50 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
-html_css_files = [
-    'css/custom.css',
-]
-
+html_css_files = ['css/custom.css']
 html_copy_source = False
 html_show_sourcelink = True
 html_show_sphinx = False
 html_logo = '_static/aio-ld2410.png'
 html_favicon = '_static/favicon.png'
+
+
+def custom_missing_reference(
+    app: Sphinx,
+    env: BuildEnvironment,
+    node: pending_xref,
+    contnode: TextElement,
+) -> nodes.reference | None:
+    """Fix references that are known not to exist."""
+    reftarget = node['reftarget']
+
+    newtarget = _reftarget_fixmap.get(reftarget)
+    if newtarget is not None:
+        node['reftarget'] = reftarget = newtarget
+
+    newtype = _reftype_fixmap.get(reftarget)
+    if newtype is not None:
+        node['reftype'] = newtype
+
+    if isinstance(reftarget, str) and reftarget.startswith(f'{package}.'):
+        domain = env.domains[node['refdomain']]
+        refdoc = node.setdefault('refdoc', env.docname)
+        result = domain.resolve_xref(
+            env,
+            refdoc,
+            app.builder,
+            node['reftype'],
+            reftarget,
+            node,
+            contnode,
+        )
+    else:
+        result = missing_reference(app, env, node, contnode)
+
+    # Look for an external reference now that we fixed the target or target type.
+    return result
+
+
+def setup(app: Sphinx) -> None:
+    """Add a custom methid for missing references."""
+    app.connect('missing-reference', custom_missing_reference)
