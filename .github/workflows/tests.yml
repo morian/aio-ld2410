@@ -3,7 +3,7 @@ name: Test
 on:
   pull_request:
     paths:
-      - '.github/workflows/test.yml'
+      - '.github/workflows/tests.yml'
       - 'tests/requirements-*.txt'
       - 'pyproject.toml'
       - '**.py'
@@ -14,7 +14,7 @@ on:
     branches:
       - 'master'
     paths:
-      - '.github/workflows/test.yml'
+      - '.github/workflows/tests.yml'
       - 'tests/requirements-*.txt'
       - 'pyproject.toml'
       - '**.py'
@@ -22,7 +22,7 @@ on:
 
 jobs:
   test:
-    name: Test aio-ld2410 with pytest
+    name: Test aio-ld2410 using pytest
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -38,7 +38,7 @@ jobs:
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version:  ${{ matrix.python-version }}
+          python-version: ${{ matrix.python-version }}
 
       - name: Install testing dependencies
         run: make install-testing
@@ -92,7 +92,7 @@ jobs:
           files: 'artifacts/**/pytest.xml'
 
   mypy:
-    name: Check typing with MyPy
+    name: Check typing using MyPy
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -106,7 +106,7 @@ jobs:
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version:  ${{ matrix.python-version }}
+          python-version: ${{ matrix.python-version }}
 
       - name: Install linting dependencies
         run: make install-package install-linting
@@ -121,7 +121,7 @@ jobs:
           path: mypy.xml
 
   ruff:
-    name: Check linting and formating with ruff
+    name: Check linting and formatting using ruff
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -135,7 +135,7 @@ jobs:
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version:  ${{ matrix.python-version }}
+          python-version: ${{ matrix.python-version }}
 
       - name: Install linting dependencies
         run: make install-linting
