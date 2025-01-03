@@ -34,7 +34,7 @@ build-docs:
   cache:
     <<: *pip_cache
   variables:
-    # Ensure that sphinx has the correct identifies (see docs/conf.py).
+    # Ensure that sphinx has the correct identifier (see docs/conf.py).
     READTHEDOCS_GIT_IDENTIFIER: ${CI_COMMIT_REF_NAME}
     READTHEDOCS_GIT_COMMIT_HASH: ${CI_COMMIT_SHA}
     READTHEDOCS_VERSION_TYPE: 'tag'

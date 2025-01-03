@@ -100,12 +100,12 @@ _reftype_fixmap = {
 }
 
 
-# OpenGraph
+# OpenGraph for URL and image.
+ogp_image = '_static/aio-ld2410.png'
 ogp_site_url = os.environ.get(
     'READTHEDOCS_CANONICAL_URL',
     'https://aio-ld2410.readthedocs.io/en/stable/',
 )
-ogp_image = '_static/aio-ld2410.png'
 
 
 ## ReadTheDocs compatibility as we're using rtd-addons.
