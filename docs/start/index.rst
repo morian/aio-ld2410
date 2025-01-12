@@ -22,7 +22,7 @@ Requirements
 Installation
 ------------
 
-This installs a package that can be use from Python (``import aio_ld2410``).
+This installs a package that then be imported from Python (``import aio_ld2410``).
 
 
 From PyPi

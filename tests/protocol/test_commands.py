@@ -47,7 +47,7 @@ _REPLY_TRACES = {
     CommandCode.ENGINEERING_DISABLE: 'fd fc fb fa 04 00 63 01 00 00 04 03 02 01',
     CommandCode.GATE_SENSITIVITY_SET: 'fd fc fb fa 04 00 64 01 00 00 04 03 02 01',
     CommandCode.FIRMWARE_VERSION: (
-        'fd fc fb fa 0c 00 a0 01 00 00 00 00 02 01 16 24' '06 22 04 03 02 01'
+        'fd fc fb fa 0c 00 a0 01 00 00 00 00 02 01 16 24 06 22 04 03 02 01'
     ),
     CommandCode.BAUD_RATE_SET: 'fd fc fb fa 04 00 a1 01 00 00 04 03 02 01',
     CommandCode.FACTORY_RESET: 'fd fc fb fa 04 00 a2 01 00 00 04 03 02 01',
