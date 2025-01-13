@@ -293,8 +293,8 @@ class LD2410:
             async with timeout(self._command_timeout):
                 frame = CommandFrame.build({'data': command})
                 # Casts are valid here since we just checked `self.connected`.
-                replies = cast(asyncio.Queue[Optional[ConstructReply]], self._replies)
-                writer = cast(StreamWriter, self._writer)
+                replies = cast('asyncio.Queue[Optional[ConstructReply]]', self._replies)
+                writer = cast('StreamWriter', self._writer)
 
                 writer.write(frame)
                 await writer.drain()
@@ -313,7 +313,7 @@ class LD2410:
                         logger.warning('Got reply code %u (request was %u)', reply.code, code)
 
         # MyPy does not see that reply cannot be None on here.
-        reply = cast(ConstructReply, reply)
+        reply = cast('ConstructReply', reply)
         if int(reply.status) != ReplyStatus.SUCCESS:
             msg = f'Command {code} received bad status: {reply.status}'
             raise CommandStatusError(msg)
@@ -484,7 +484,7 @@ class LD2410:
         """
         async with self._report_condition:
             await self._report_condition.wait()
-            report = cast(ReportStatus, self._report)
+            report = cast('ReportStatus', self._report)
         return copy.deepcopy(report)
 
     @configuration
