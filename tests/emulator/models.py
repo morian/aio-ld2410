@@ -93,7 +93,7 @@ class EmulatorCommand:
 class DeviceStatus:
     """Internal state of the emulated device."""
 
-    baud_rate = BaudRateIndex.RATE_256000
+    baud_rate: BaudRateIndex = BaudRateIndex.RATE_256000
     configuring: bool = False
     config_mode: ConfigModeStatus = _DefaultConfigModeStatus
     engineering_mode: bool = False
