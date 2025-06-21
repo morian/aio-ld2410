@@ -61,7 +61,7 @@ all: lint mypy testcov
 
 .PHONY: clean
 clean:
-	$(MAKE) docs/ clean
+	$(MAKE) -C docs/ clean
 	$(RM) .coverage
 	$(RM) .coverage.*
 	$(RM) -r *.egg-info
