@@ -90,7 +90,10 @@ typing:
   allow_failure: true
 
 tests:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
+  parallel:
+    matrix:
+      - PYTHON_VERSION: ['3.10', '3.11', '3.12', '3.13']
+  image: ${CI_REGISTRY}/dockers/ci/python-build:${PYTHON_VERSION}-alpine
   stage: tests
   needs: []
   cache:
