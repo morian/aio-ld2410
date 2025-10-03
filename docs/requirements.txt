@@ -1,4 +1,4 @@
-furo==2025.7.19
+furo==2025.9.25
 sphinx==8.2.3
 sphinx_autodoc_typehints==3.2.0
 sphinx_copybutton==0.5.2

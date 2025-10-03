@@ -1,5 +1,5 @@
-anyio==4.10.0
-coverage==7.10.6
-pytest-cov==6.2.1
+anyio==4.11.0
+coverage==7.10.7
+pytest-cov==7.0.0
 pytest-timeout==2.4.0
-pytest==8.4.1
+pytest==8.4.2
