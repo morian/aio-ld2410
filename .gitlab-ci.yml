@@ -16,7 +16,7 @@ variables:
 
 
 build-package:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.14-alpine
   stage: build
   cache:
     <<: *pip_cache
@@ -29,7 +29,7 @@ build-package:
       - dist/
 
 build-docs:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.14-alpine
   stage: build
   cache:
     <<: *pip_cache
@@ -52,7 +52,7 @@ build-docs:
       - docs/_build/html
 
 linting:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.14-alpine
   stage: tests
   cache:
     <<: *pip_cache
@@ -72,7 +72,7 @@ linting:
   allow_failure: true
 
 typing:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.14-alpine
   stage: tests
   cache:
     <<: *pip_cache
@@ -92,7 +92,7 @@ typing:
 tests:
   parallel:
     matrix:
-      - PYTHON_VERSION: ['3.10', '3.11', '3.12', '3.13']
+      - PYTHON_VERSION: ['3.10', '3.11', '3.12', '3.13', '3.14']
   image: ${CI_REGISTRY}/dockers/ci/python-build:${PYTHON_VERSION}-alpine
   stage: tests
   needs: []
@@ -114,7 +114,7 @@ tests:
       junit: pytest.xml
 
 pages:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.14-alpine
   stage: publish
   only:
     - master
@@ -129,7 +129,7 @@ pages:
       - public
 
 publish-package:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.13-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.14-alpine
   stage: publish
   variables:
     TWINE_REPOSITORY_URL: ${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/packages/pypi
