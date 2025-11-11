@@ -78,8 +78,9 @@ source = [
 	'aio_ld2410/',
 ]
 
-[tool.pytest.ini_options]
-addopts = '--cov=aio_ld2410'
+[tool.pytest]
+addopts = ['--cov=aio_ld2410']
+strict = true
 testpaths = ['tests']
 
 [tool.ruff]
