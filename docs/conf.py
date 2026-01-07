@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.abspath('..'))
 author = 'Romain Bezut'
 project = 'aio-ld2410'
 package = project.replace('-', '_')
-copyright = f'2024-2025, {author}'
+copyright = f'2024-2026, {author}'
 
 extensions = [
     'sphinx.ext.autodoc',
