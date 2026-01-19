@@ -54,7 +54,7 @@ How was it implemented?
 Gates, gates everywhere
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The area in front of the sensor is divided in 9 ranges called gates the documentation.
+The area in front of the sensor is divided in 9 ranges called gates in the documentation.
 
 The following table tells the range covered by each gate depending on the distance
 resolution setting:
