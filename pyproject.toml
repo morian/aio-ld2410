@@ -56,9 +56,6 @@ include = [
 [tool.setuptools.dynamic]
 version = {attr = 'aio_ld2410.version.version'}
 
-[tool.setuptools.package-data]
-'aio_ld2410' = ['py.typed']
-
 [tool.coverage.run]
 source = ['aio_ld2410']
 branch = true
