@@ -30,7 +30,7 @@ From PyPi
 
 ``aio-ld2410`` can be installed from PyPi::
 
-   ptyhon -m pip install aio-ld2410
+   python -m pip install aio-ld2410
 
 The wheel package is generic and should work on most platforms.
 

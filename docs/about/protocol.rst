@@ -40,6 +40,6 @@ We also get details on two additional fields provided in the engineering report:
 
 It was found, translated and provided on `this github issue`_.
 
-These features seems to only be available on the latest firmware versions.
+These features seem to only be available on the latest firmware versions.
 
 .. _this github issue: https://github.com/esphome/feature-requests/issues/2156#issuecomment-1472962509

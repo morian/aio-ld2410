@@ -176,7 +176,7 @@ Module restart can be performed through :meth:`LD2410.restart_module`.
    :class: note
 
    If you forget to restart, a call to :meth:`LD2410.get_distance_resolution` will
-   return value you just configured and not the value currently applied.
+   return the value you just configured and not the value currently applied.
 
 .. literalinclude:: ../../examples/write_distance_configuration.py
    :caption: examples/write_distance_configuration.py
@@ -191,7 +191,7 @@ Reading reports
 ---------------
 
 Reports are pushed by the device to the serial link regularly and contain detection results.
-Advanced reports cat be requested using the engineering mode, which will not be covered in
+Advanced reports can be requested using the engineering mode, which will not be covered in
 this tutorial
 
 .. seealso::

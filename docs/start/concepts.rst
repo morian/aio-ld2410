@@ -18,7 +18,7 @@ This library currently supports three variants, ``LD2410``, ``LD2410B`` and ``LD
 While model ``LD2410`` is only configurable through the serial link, ``LD2410B`` and ``LD2410C``
 also come with a bluetooth chip, making it possible to configure the device though the air.
 
-A dedicated application called HLKRadarTool_ has been release by the vendor for this purpose.
+A dedicated application called HLKRadarTool_ has been released by the vendor for this purpose.
 
 .. _HLKRadarTool: https://play.google.com/store/apps/details?id=com.hlk.hlkradartool
 
@@ -54,7 +54,7 @@ How was it implemented?
 Gates, gates everywhere
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The area in front of the sensor is divided in 9 ranges called gates in the documentation.
+The area in front of the sensor is divided into 9 ranges called gates in the documentation.
 
 The following table tells the range covered by each gate depending on the distance
 resolution setting:

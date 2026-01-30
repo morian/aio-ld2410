@@ -27,8 +27,8 @@ using asyncio_.
 .. _Hi-Link LD2410: https://hlktech.net/index.php?id=988
 .. _asyncio: https://docs.python.org/3/library/asyncio.html
 
-Such radar sensor would typically require an USB-UART adapter on most computers but is
-natively included on most embedded platforms such as the `Raspberry Pi`_.
+Such radar sensors would typically require a USB-UART adapter on most computers but UART
+is natively supported on most embedded platforms such as the `Raspberry Pi`_.
 
 .. _Raspberry Pi: https://www.raspberrypi.com/
 
@@ -86,7 +86,7 @@ For further details, please refer to the documentation_.
 Contributing
 ------------
 
-Contributions, bug reports and feedbacks are very welcome, feel free to open
+Contributions, bug reports and feedback are very welcome, feel free to open
 an issue_, send a `pull request`_. or `start a discussion`_.
 
 Participants must uphold the `code of conduct`_.

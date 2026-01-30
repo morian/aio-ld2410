@@ -37,13 +37,13 @@ Before a pull request, make sure to check for linting and typing using the follo
 
    $ make lint mypy
 
-If if fixes a non trivial issue with the code, an additional test-case would be nice as well.
+If it fixes a non-trivial issue with the code, an additional test-case would be nice as well.
 
 .. code-block:: console
 
    $ make test
 
-I am especially interested in feedbacks on variants and firmwares behaviors, especially
+I am especially interested in feedback on variants and firmware behaviors, especially
 if we can find a reliable way to detect the type of variant this library is discussing with.
 
 Also, writing documentation is not my favorite cup of tea, all improvements are valuable!

@@ -346,7 +346,7 @@ class LD2410:
             You most likely don't need this returned value.
 
         Returns:
-            An asynchronous iterator (seel YIELDS).
+            An asynchronous iterator (see YIELDS).
 
         """
         async with self._config_lock:
@@ -517,7 +517,7 @@ class LD2410:
             An asynchronous iterator for :class:`.ReportStatus`.
 
         Returns:
-            An asynchronous iterator (seel YIELDS).
+            An asynchronous iterator (see YIELDS).
 
         """
         while True:

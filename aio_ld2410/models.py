@@ -103,7 +103,7 @@ class GateSensitivityConfig(TypedDict, total=True):
 
     """
 
-    #: Gate to set (value form 0 to 8, can be 0xFFFF for broadcast to all gates).
+    #: Gate to set (value from 0 to 8, can be 0xFFFF for broadcast to all gates).
     distance_gate: int
 
     #: Moving energy threshold (in percent, from 0 to 100).
