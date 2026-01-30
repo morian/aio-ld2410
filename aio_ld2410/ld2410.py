@@ -7,7 +7,7 @@ import logging
 import sys
 from asyncio import StreamReader, StreamWriter
 from contextlib import AsyncExitStack, asynccontextmanager, suppress
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, TypeVar, cast
 
 from construct import Container
 from serial_asyncio_fast import open_serial_connection
@@ -293,7 +293,7 @@ class LD2410:
             async with timeout(self._command_timeout):
                 frame = CommandFrame.build({'data': command})
                 # Casts are valid here since we just checked `self.connected`.
-                replies = cast('asyncio.Queue[Optional[ConstructReply]]', self._replies)
+                replies = cast('asyncio.Queue[ConstructReply | None]', self._replies)
                 writer = cast('StreamWriter', self._writer)
 
                 writer.write(frame)
