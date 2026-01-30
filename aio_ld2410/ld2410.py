@@ -7,6 +7,7 @@ import logging
 import sys
 from asyncio import StreamReader, StreamWriter
 from contextlib import AsyncExitStack, asynccontextmanager, suppress
+from inspect import iscoroutinefunction
 from typing import TYPE_CHECKING, Any, Callable, ClassVar, TypeVar, cast
 
 from construct import Container
@@ -72,7 +73,7 @@ def configuration(
         CommandContextError: When the configuration context is not entered.
 
     """
-    if not asyncio.iscoroutinefunction(func):
+    if not iscoroutinefunction(func):
         msg = '@configuration decorator is only suitable for async methods.'
         raise RuntimeError(msg)
 
