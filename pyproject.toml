@@ -8,12 +8,13 @@ dynamic = ['version']
 authors = [
 	{name = 'Romain Bezut', email = 'morian@xdec.net'},
 ]
+license = 'MIT'
+license-files = ['LICENSE']
 description = 'Asynchonous library for the HiLink LD2410 presence detector module'
 readme = 'README.rst'
 classifiers = [
 	'Framework :: AsyncIO',
 	'Intended Audience :: Developers',
-	'License :: OSI Approved :: MIT License',
 	'Operating System :: POSIX :: Linux',
 	'Programming Language :: Python :: 3',
 	'Programming Language :: Python :: 3 :: Only',
