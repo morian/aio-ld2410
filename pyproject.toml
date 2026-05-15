@@ -176,7 +176,7 @@ max-complexity = 10
 
 [tool.mypy]
 files = ['aio_ld2410/*.py']
-python_version = '3.9'
+python_version = '3.10'
 namespace_packages = true
 explicit_package_bases = true
 local_partial_types = true
