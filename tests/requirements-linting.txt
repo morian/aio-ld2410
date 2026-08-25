@@ -1,4 +1,4 @@
-mypy==2.3.0
-ruff==0.15.21
-construct-typing==0.7.0
+mypy==2.3.1
+ruff==0.16.4
+construct-typing==0.8.1
 typing_extensions==4.16.0
