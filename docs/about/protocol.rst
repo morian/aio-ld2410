@@ -16,30 +16,8 @@ These can be found on the `official website`_, through Google drive links.
 ``aio-LD2410`` only implements protocols for the ``LD2410`` variants:
 
 - ``LD2410 Serial Communication Protocol V1.02.pdf``
-- ``LD2410B Serial communication protocol V1.04.pdf``
-- ``LD2410C Serial communication protocol V1.00.pdf``
+- ``LD2410B Serial communication protocol V1.07.pdf``
+- ``HLK-LD2410C Serial communication protocol V1.07.pdf``
 
-The ``LD2410S`` variant seems to be quite different and was not covered by this library.
-
-
-That anonymous hero on github
------------------------------
-
-There is a Chinese version of the ``LD2410B Serial communication protocol V1.06``
-from which were extracted the following additional commands:
-
-- Read the distance resolution parameter
-- Write the distance resolution parameter
-- Read light control parameters
-- Write light control parameters
-
-We also get details on two additional fields provided in the engineering report:
-
-- Photo-sensitivity detection value
-- ``OUT`` pin status
-
-It was found, translated and provided on `this github issue`_.
-
-These features seem to only be available on the latest firmware versions.
-
-.. _this github issue: https://github.com/esphome/feature-requests/issues/2156#issuecomment-1472962509
+The ``LD2410D`` and ``LD2410S`` variants use a different protocol and are not covered
+by this library.
