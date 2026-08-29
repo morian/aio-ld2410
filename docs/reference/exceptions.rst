@@ -26,6 +26,7 @@ General exceptions
 These are raised when there is a global issue with the device.
 
 .. autoexception:: ConnectionClosedError
+.. autoexception:: ProtocolVersionError
 
 
 Command exceptions

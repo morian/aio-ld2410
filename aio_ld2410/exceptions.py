@@ -10,6 +10,7 @@
             * :exc:`CommandParamError`
             * :exc:`CommandReplyError`
             * :exc:`CommandStatusError`
+        * :exc:`ProtocolVersionError`
 """
 
 from __future__ import annotations
@@ -57,5 +58,14 @@ class ModuleRestartedError(BaseAioLd2410Error):
 
     It is used internally to close the current configuration context.
 
-    When the exception is asked from :meth:`.LD2410.restart_module`, make sure not to catch it.
+    When the exception is asked for from :meth:`.LD2410.restart_module`,
+    make sure not to catch it.
+    """
+
+
+class ProtocolVersionError(AioLd2410Error):
+    """
+    Raised when the protocol version does not match what we expect.
+
+    This is used to detect unsupported devices of firmwares in a early stage.
     """

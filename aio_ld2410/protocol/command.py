@@ -30,23 +30,26 @@ if TYPE_CHECKING:
 class CommandCode(IntEnum):
     """List of known command OpCodes."""
 
+    CONFIG_DISABLE = 0xFE
+    CONFIG_ENABLE = 0xFF
+
     PARAMETERS_WRITE = 0x60
     PARAMETERS_READ = 0x61
     ENGINEERING_ENABLE = 0x62
     ENGINEERING_DISABLE = 0x63
     GATE_SENSITIVITY_SET = 0x64
+
     FIRMWARE_VERSION = 0xA0
     BAUD_RATE_SET = 0xA1
     FACTORY_RESET = 0xA2
     MODULE_RESTART = 0xA3
+
+    # Only available on LD2410B and LD2410C.
     BLUETOOTH_SET = 0xA4
     BLUETOOTH_MAC_GET = 0xA5
-    CONFIG_DISABLE = 0xFE
-    CONFIG_ENABLE = 0xFF
-
-    # The following commands are only available on some variants.
     BLUETOOTH_AUTHENTICATE = 0xA8
     BLUETOOTH_PASSWORD_SET = 0xA9
+
     DISTANCE_RESOLUTION_SET = 0xAA
     DISTANCE_RESOLUTION_GET = 0xAB
 

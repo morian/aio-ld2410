@@ -34,13 +34,23 @@ natively included on most embedded platforms such as the `Raspberry Pi`_.
 
 .. _Raspberry Pi: https://www.raspberrypi.com/
 
-This library supports a wide range of variants in terms of models and firmware versions,
-but was mostly tested on LD2410C_ with firmware ``v2.04.23022511``.
+This library supports devices LD2410_, LD2410B_ and LD2410C_ and may require a recent firmware
+to fully support all features. Obviously bluetooth-related methods are not available on LD2410_.
+Tests were mostly performed on LD2410C_ with firmware ``v2.04.23022511``.
+
+LD2410D_ and LD2410S_ use a different protocol and are not supported yet, which would require
+an important refactor of this code base. Support status for LD2410-AA_ is not clear for now.
 
 It features comprehensible methods to get and set various configuration parameters,
-as well as :mod:`dataclasses` for output results and sensor reports.
+as well as dataclasses_ for output results and sensor reports.
 
+.. _LD2410: https://www.hlktech.net/index.php?id=988
+.. _LD2410B: https://www.hlktech.net/index.php?id=1094
 .. _LD2410C: https://www.hlktech.net/index.php?id=1095
+.. _LD2410D: https://www.hlktech.net/index.php?id=1376
+.. _LD2410S: https://www.hlktech.net/index.php?id=1176
+.. _LD2410-AA: https://www.hlktech.net/index.php?id=1488
+.. _dataclasses: https://docs.python.org/3/library/dataclasses.html
 
 Here's how you can start reading sensor reports from a few lines of python:
 

@@ -14,6 +14,7 @@ import dacite
 
 from aio_ld2410 import (
     BaudRateIndex,
+    ConfigModeStatus,
     LightControl,
     OutPinLevel,
     ReportBasicStatus,
@@ -89,6 +90,7 @@ class EmulatedDevice:
             CommandCode.LIGHT_CONTROL_SET: self._cmd_light_control_set,
         }
         self._emu_handlers = {
+            EmulatorCode.CHANGE_CONFIG_MODE: self._emu_change_config_mode,
             EmulatorCode.DISCONNECT_NOW: self._emu_disconnect_now,
             EmulatorCode.DISCONNECT_AFTER_COMMAND: self._emu_disconnect_after_command,
             EmulatorCode.GENERATE_CORRUPTED_FRAME: self._emu_generate_corrupted_frame,
@@ -277,6 +279,13 @@ class EmulatedDevice:
         light.threshold = data.threshold & 0xFF
         light.default = OutPinLevel(data.default.intvalue)
         return self._build_reply(command.code)
+
+    async def _emu_change_config_mode(self, command: EmulatorCommand) -> None:
+        """Use a custom protocol version."""
+        self._status.config_mode = ConfigModeStatus(
+            buffer_size=command.data.get('buffer_size', 64),
+            protocol_version=command.data.get('protocol_version', 2),
+        )
 
     async def _emu_disconnect_after_command(self, command: EmulatorCommand) -> None:
         """Tell the emulator to stop after the next command."""

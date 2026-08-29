@@ -20,6 +20,7 @@ from .exceptions import (
     CommandStatusError,
     ConnectionClosedError,
     ModuleRestartedError,
+    ProtocolVersionError,
 )
 from .models import (
     ConfigModeStatus,
@@ -96,6 +97,9 @@ class LD2410:
 
     DEFAULT_COMMAND_TIMEOUT: ClassVar[float] = 2.0
     DEFAULT_BAUD_RATE: ClassVar[int] = 256000
+
+    #: Supported protocol version.
+    PROTOCOL_VERSION: ClassVar[int] = 1
 
     def __init__(
         self,
@@ -259,7 +263,7 @@ class LD2410:
                                 self._report_condition.notify_all()
                     except Exception:
                         # Happens when we received a frame with unknown content.
-                        # For the user perspective this will most likely ends with a timeout.
+                        # From the user perspective this will most likely ends with a timeout.
                         logger.exception('Unable to handle frame: %s', frame.data.hex(' '))
         finally:
             self._connected = False
@@ -346,6 +350,9 @@ class LD2410:
 
             You most likely don't need this returned value.
 
+        Raises:
+            ProtocolVersionError: when used on an unsupported device or firmware.
+
         Returns:
             An asynchronous iterator (see YIELDS).
 
@@ -353,7 +360,14 @@ class LD2410:
         async with self._config_lock:
             resp = await self._request(CommandCode.CONFIG_ENABLE)
             try:
-                yield container_to_model(ConfigModeStatus, resp.data)
+                status = container_to_model(ConfigModeStatus, resp.data)
+                if status.protocol_version != self.PROTOCOL_VERSION:
+                    msg = (
+                        f'Unsupported protocol version {status.protocol_version}, '
+                        f'expecting {self.PROTOCOL_VERSION}'
+                    )
+                    raise ProtocolVersionError(msg)
+                yield status
             except ModuleRestartedError:
                 logger.info('Configuration context has closed due to module restart.')
             finally:

@@ -23,6 +23,7 @@ from aio_ld2410 import (
     ConnectionClosedError,
     LightControl,
     OutPinLevel,
+    ProtocolVersionError,
     ld2410,
 )
 from aio_ld2410.protocol import ReportFrame
@@ -123,6 +124,21 @@ class TestLD2410:
         async with device.configure() as config:
             assert device.configuring is True
             assert config.protocol_version == 1
+
+    async def test_unsupported_device(self, device):
+        """Check that we detect an unsupported protocol version."""
+
+        command = EmulatorCommand(
+            code=EmulatorCode.CHANGE_CONFIG_MODE,
+            data={
+                'protocol_version': 4,
+            },
+        )
+        await device.send_emulator_command(command)
+
+        with pytest.raises(ProtocolVersionError, match='Unsupported protocol version 4'):
+            async with device.configure():
+                pass
 
     @pytest.mark.parametrize('mode', [True, False])
     async def test_engineering_mode_with_config_mode(self, device, mode):

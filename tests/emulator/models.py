@@ -52,6 +52,9 @@ class EmulatorCode(IntEnum):
 
     """
 
+    #: Use a custom protocol version or buffer size when ENABLE is requested.
+    CHANGE_CONFIG_MODE = auto()
+
     #: Tell the emulator to disconnect immediately.
     DISCONNECT_NOW = auto()
 

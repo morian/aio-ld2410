@@ -9,6 +9,7 @@ from .exceptions import (
     CommandStatusError,
     ConnectionClosedError,
     ModuleRestartedError,
+    ProtocolVersionError,
 )
 from .ld2410 import LD2410
 from .models import (
@@ -47,6 +48,7 @@ __all__ = [
     'OutPinLevel',
     'ParametersConfig',
     'ParametersStatus',
+    'ProtocolVersionError',
     'ReportBasicStatus',
     'ReportEngineeringStatus',
     'ReportStatus',
