@@ -34,7 +34,7 @@ is natively supported on most embedded platforms such as the `Raspberry Pi`_.
 
 This library supports devices LD2410_, LD2410B_ and LD2410C_ and may require a recent firmware
 to fully support all features. Obviously bluetooth-related methods are not available on LD2410_.
-Tests were mostly performed on LD2410C_ with firmware ``v2.04.23022511``.
+Tests were mostly performed on LD2410C_ with firmware ``v2.04.23022511`` and ``v2.44.25070917``.
 
 LD2410D_ and LD2410S_ use a different protocol and are not supported yet, which would require
 an important refactor of this code base. Support status for LD2410-AA_ is not clear for now.

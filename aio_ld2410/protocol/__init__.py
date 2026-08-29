@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from .command import (
+    BackgroundNoiseStatus,
     BaudRateIndex,
     Command,
     CommandCode,
@@ -28,6 +29,7 @@ __all__ = [
     'FRAME_FOOTER_REPORT',
     'FRAME_HEADER_COMMAND',
     'FRAME_HEADER_REPORT',
+    'BackgroundNoiseStatus',
     'BaudRateIndex',
     'Command',
     'CommandCode',

@@ -11,6 +11,10 @@ The format is based on `Keep a Changelog`_ and this project adheres to `Semantic
 1.0.2 (UNRELEASED)
 ==================
 
+Added
+-----
+- Background noise detection commands, available with firmware version 2.44
+
 Fixed
 -----
 - Detect and raise an error when configuring an unsupported device or firmware

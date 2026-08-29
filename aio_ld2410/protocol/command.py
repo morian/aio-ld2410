@@ -53,18 +53,22 @@ class CommandCode(IntEnum):
     DISTANCE_RESOLUTION_SET = 0xAA
     DISTANCE_RESOLUTION_GET = 0xAB
 
-    # The following replies are available on FW v2.4 and later.
+    # The following commands are available on FW v2.04 and later.
     # https://github.com/esphome/feature-requests/issues/2156#issuecomment-1472962509
     LIGHT_CONTROL_SET = 0xAD
     LIGHT_CONTROL_GET = 0xAE
 
+    # The following commands are available on FW 2.44 and later.
+    BACKGROUND_NOISE_START = 0x0B
+    BACKGROUND_NOISE_STATUS_GET = 0x1B
 
-class LightControl(IntEnum):
-    """Configuration of the light control."""
 
-    DISABLED = 0  #: The ``OUT`` pin will never be affected by photo-sensor
-    BELOW = 1  #: The ``OUT`` pin is HIGH when value is under threshold.
-    ABOVE = 2  #: The ``OUT`` pin is HIGH when value is above threshold.
+class BackgroundNoiseStatus(IntEnum):
+    """Tell the status of the background noise detection process."""
+
+    NOT_RUNNING = 0
+    IN_PROGRESS = 1
+    COMPLETED = 2
 
 
 class BaudRateIndex(IntEnum):
@@ -92,6 +96,14 @@ class BaudRateIndex(IntEnum):
 
         """
         return cls[f'RATE_{rate}']
+
+
+class LightControl(IntEnum):
+    """Configuration of the light control."""
+
+    DISABLED = 0  #: The ``OUT`` pin will never be affected by photo-sensor
+    BELOW = 1  #: The ``OUT`` pin is HIGH when value is under threshold.
+    ABOVE = 2  #: The ``OUT`` pin is HIGH when value is above threshold.
 
 
 class OutPinLevel(IntEnum):
@@ -163,7 +175,7 @@ _CommandSwitch = Switch(
         CommandCode.CONFIG_DISABLE: Pass,
         # The following configuration is lost on restart.
         CommandCode.CONFIG_ENABLE: Struct('value' / Const(1, Int16ul)),
-        # All the following commands are only available on LD2410C.
+        # All the following commands are only available on LD2410B/C.
         # The following command is only available through bluetooth.
         CommandCode.BLUETOOTH_AUTHENTICATE: Struct(
             'password' / PaddedString(6, 'ascii'),
@@ -180,6 +192,10 @@ _CommandSwitch = Switch(
             'default' / Enum(Int16ul, OutPinLevel),
         ),
         CommandCode.LIGHT_CONTROL_GET: Pass,
+        CommandCode.BACKGROUND_NOISE_START: Struct(
+            'delay' / Int16ul,  # seconds
+        ),
+        CommandCode.BACKGROUND_NOISE_STATUS_GET: Pass,
     },
     Error,
 )
@@ -235,13 +251,18 @@ _ReplySwitch = Switch(
         CommandCode.DISTANCE_RESOLUTION_GET: Struct(
             'resolution' / Enum(Int16ul, ResolutionIndex),
         ),
-        # The following replies are available on FW v2.4 and later.
+        # The following replies are available on FW v2.04 and later (LD2410B/C).
         # It seems to be related to the OUT pin behavior.
         CommandCode.LIGHT_CONTROL_SET: Pass,
         CommandCode.LIGHT_CONTROL_GET: Struct(
             'control' / Enum(Byte, LightControl),
             'threshold' / Byte,  # From 0 to 255
             'default' / Enum(Int16ul, OutPinLevel),
+        ),
+        # The following replies are available on FW 2.44 and later (LD2410B/C).
+        CommandCode.BACKGROUND_NOISE_START: Pass,
+        CommandCode.BACKGROUND_NOISE_STATUS_GET: Struct(
+            'status' / Enum(Int16ul, BackgroundNoiseStatus),
         ),
     },
     Error,

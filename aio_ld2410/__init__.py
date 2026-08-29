@@ -24,13 +24,21 @@ from .models import (
     ReportEngineeringStatus,
     ReportStatus,
 )
-from .protocol import BaudRateIndex, LightControl, OutPinLevel, ResolutionIndex, TargetStatus
+from .protocol import (
+    BackgroundNoiseStatus,
+    BaudRateIndex,
+    LightControl,
+    OutPinLevel,
+    ResolutionIndex,
+    TargetStatus,
+)
 from .version import version
 
 __version__ = version
 __all__ = [
     'LD2410',
     'AioLd2410Error',
+    'BackgroundNoiseStatus',
     'BaudRateIndex',
     'CommandContextError',
     'CommandError',

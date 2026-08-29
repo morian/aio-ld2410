@@ -12,6 +12,9 @@ Common configuration values
 .. autoclass:: BaudRateIndex
    :members:
 
+.. autoclass:: BackgroundNoiseStatus
+   :members:
+
 .. autoclass:: LightControl
    :members:
 
