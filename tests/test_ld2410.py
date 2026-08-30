@@ -16,6 +16,7 @@ import pytest
 
 from aio_ld2410 import (
     LD2410,
+    BackgroundNoiseStatus,
     CommandContextError,
     CommandParamError,
     CommandReplyError,
@@ -171,6 +172,17 @@ class TestLD2410:
         async with device.configure():
             with pytest.raises(CommandParamError):
                 await device.set_baud_rate(rate)
+
+    async def test_bgnoise_detection(self, device):
+        """Check that we can start the background noice detection."""
+        async with device.configure():
+            status = await device.get_background_noise_detection_status()
+            assert status == BackgroundNoiseStatus.NOT_RUNNING
+
+            await device.start_background_noise_detection(10)
+
+            status = await device.get_background_noise_detection_status()
+            assert status == BackgroundNoiseStatus.IN_PROGRESS
 
     @pytest.mark.parametrize('mode', [True, False])
     async def test_bluetooth_set(self, device, mode):

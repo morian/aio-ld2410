@@ -6,6 +6,7 @@ import logging
 from asyncio import Event, Lock
 from contextlib import AsyncExitStack, suppress
 from dataclasses import asdict, is_dataclass
+from datetime import datetime, timedelta, timezone
 from enum import IntEnum
 from random import randrange
 from typing import TYPE_CHECKING, Any
@@ -13,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 import dacite
 
 from aio_ld2410 import (
+    BackgroundNoiseStatus,
     BaudRateIndex,
     ConfigModeStatus,
     LightControl,
@@ -67,6 +69,7 @@ class EmulatedDevice:
 
     def __init__(self, reader: StreamReader, writer: StreamWriter) -> None:
         """Create a new emulated LD2410 device from a generic reader/writer."""
+        self._bgnoise_end = None  # type: duration | None
         self._closing = Event()
         self._context = None  # type: AsyncExitStack | None
         self._cmd_handlers = {
@@ -88,6 +91,8 @@ class EmulatedDevice:
             CommandCode.PARAMETERS_WRITE: self._cmd_parameters_write,
             CommandCode.LIGHT_CONTROL_GET: self._cmd_light_control_get,
             CommandCode.LIGHT_CONTROL_SET: self._cmd_light_control_set,
+            CommandCode.BACKGROUND_NOISE_START: self._cmd_background_noise_start,
+            CommandCode.BACKGROUND_NOISE_STATUS_GET: self._cmd_background_noise_status_get,
         }
         self._emu_handlers = {
             EmulatorCode.CHANGE_CONFIG_MODE: self._emu_change_config_mode,
@@ -279,6 +284,31 @@ class EmulatedDevice:
         light.threshold = data.threshold & 0xFF
         light.default = OutPinLevel(data.default.intvalue)
         return self._build_reply(command.code)
+
+    @need_configuration_mode
+    async def _cmd_background_noise_start(self, command: Container[Any]) -> bytes:
+        """Handle BACKGROUND_NOISE_START."""
+        data = command.data
+        seconds = data.duration
+        if seconds > 0:
+            seconds = 10 + seconds
+            self._bgnoise_end = datetime.now(timezone.utc) + timedelta(seconds)
+        return self._build_reply(command.code)
+
+    @need_configuration_mode
+    async def _cmd_background_noise_status_get(self, command: Container[Any]) -> bytes:
+        """Get the background noise detection status."""
+        now = datetime.now(timezone.utc)
+        status = BackgroundNoiseStatus.NOT_RUNNING
+        if self._bgnoise_end is not None:
+            if now < self._bgnoise_end:
+                status = BackgroundNoiseStatus.IN_PROGRESS
+            else:
+                # COMPLETED is sent when completed (only for 3 seconds).
+                delta = now - self._bgnoise_end
+                if delta.total_seconds() < 3.0:
+                    status = BackgroundNoiseStatus.COMPLETED
+        return self._build_reply(command.code, data={'status': int(status)})
 
     async def _emu_change_config_mode(self, command: EmulatorCommand) -> None:
         """Use a custom protocol version."""

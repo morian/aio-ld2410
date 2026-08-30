@@ -193,7 +193,7 @@ _CommandSwitch = Switch(
         ),
         CommandCode.LIGHT_CONTROL_GET: Pass,
         CommandCode.BACKGROUND_NOISE_START: Struct(
-            'delay' / Int16ul,  # seconds
+            'duration' / Int16ul,  # seconds
         ),
         CommandCode.BACKGROUND_NOISE_STATUS_GET: Pass,
     },

@@ -34,6 +34,7 @@ from .models import (
     container_to_model,
 )
 from .protocol import (
+    BackgroundNoiseStatus,
     BaudRateIndex,
     Command,
     CommandCode,
@@ -376,6 +377,29 @@ class LD2410:
                 self._restarted = False
 
     @configuration
+    async def get_background_noise_detection_status(self) -> BackgroundNoiseStatus:
+        """
+        Get the background noise detection process status.
+
+        :attr:`.BackgroundNoiseStatus.COMPLETED` is only returned when the detection
+        process completed, and still returned up to 3 seconds after its completion.
+
+        Caution:
+            This feature is only available on LD2410B and LD2410C starting
+            with firmware version 2.44.
+
+        Returns:
+            The current status of the background noise detection.
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandStatusError: when the device replies with a failed status.
+
+        """
+        resp = await self._request(CommandCode.BACKGROUND_NOISE_STATUS_GET)
+        return BackgroundNoiseStatus(resp.data.status.intvalue)
+
+    @configuration
     async def get_bluetooth_address(self) -> bytes:
         """
         Get the device's bluetooth mac address.
@@ -455,7 +479,7 @@ class LD2410:
             This report can be very outdated if you spent too much time in configuration mode.
 
         Tip:
-            This method does not way for anything and it not asynchronous.
+            This method does not wait for anything and it not asynchronous.
 
         Returns:
             The last report we received from the device.
@@ -857,3 +881,29 @@ class LD2410:
             msg = f'Missing parameters: {set(missing)}'
             raise CommandParamError(msg)
         await self._request(CommandCode.GATE_SENSITIVITY_SET, data)
+
+    @configuration
+    async def start_background_noise_detection(self, duration: int) -> None:
+        """
+        Start a background noise detection process.
+
+        This process starts after an initial fixed delay of 10 seconds and then lasts
+        for the requested duration (in seconds). A duration of 0 seconds has no effect.
+        Gates sensitivities are automatically configured afterward.
+
+        Caution:
+            This feature is only available on LD2410B and LD2410C starting
+            with firmware version 2.44.
+
+        Args:
+            duration: how long to wait before the process begins, in seconds
+
+        See Also:
+            :meth:`get_background_noise_detection_status` to check the detection status.
+
+        Raises:
+            CommandContextError: when called outside of the configuration context.
+            CommandStatusError: when the device replies with a failed status.
+
+        """
+        await self._request(CommandCode.BACKGROUND_NOISE_START, {'duration': duration})

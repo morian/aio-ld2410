@@ -14,6 +14,7 @@ Common configuration values
 
 .. autoclass:: BackgroundNoiseStatus
    :members:
+   :undoc-members:
 
 .. autoclass:: LightControl
    :members:

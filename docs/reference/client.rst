@@ -33,6 +33,17 @@ Properties
    .. autoproperty:: entered
 
 
+Reports
+-------
+
+.. class:: LD2410
+   :no-index:
+
+   .. automethod:: get_last_report
+   .. automethod:: get_next_report
+   .. automethod:: get_reports
+
+
 Configuration mode
 ------------------
 
@@ -48,6 +59,7 @@ Getters
 .. class:: LD2410
    :no-index:
 
+   .. automethod:: get_background_noise_detection_status
    .. automethod:: get_bluetooth_address
    .. automethod:: get_distance_resolution
    .. automethod:: get_firmware_version
@@ -71,14 +83,4 @@ Setters
    .. automethod:: set_gate_sensitivity
    .. automethod:: set_light_control
    .. automethod:: set_parameters
-
-
-Reports
--------
-
-.. class:: LD2410
-   :no-index:
-
-   .. automethod:: get_last_report
-   .. automethod:: get_next_report
-   .. automethod:: get_reports
+   .. automethod:: start_background_noise_detection
