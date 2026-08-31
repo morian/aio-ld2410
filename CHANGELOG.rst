@@ -8,12 +8,13 @@ The format is based on `Keep a Changelog`_ and this project adheres to `Semantic
 .. _Semantic Versioning: https://semver.org/spec/v2.0.0.html
 
 
-1.0.2 (UNRELEASED)
+1.1.0 (UNRELEASED)
 ==================
 
 Added
 -----
 - Background noise detection commands, available with firmware version 2.44
+- Example and tutorial on how to use automatic gate sensitivity configuration
 
 Fixed
 -----

@@ -164,6 +164,38 @@ The result of both scripts can be read again with read_simple_configuration_:
      Static     0 |   0 |  40 |  35 |  30 |  25 |  20 |  20 |  20
 
 
+Automatic sensitivity configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On ``LD2410B`` and ``LD2410C``, starting with firmware ``2.44``, a new feature has
+been introduced to automatically configure gate sensitivities with a background noise
+detection command.
+
+This feature is implemented in the following methods:
+   * :meth:`LD2410.start_background_noise_detection`
+   * :meth:`LD2410.get_background_noise_detection_status`
+
+These methods can be used as shown in the following example:
+
+.. literalinclude:: ../../examples/automatic_calibration.py
+   :caption: examples/automatic_calibration.py
+   :linenos:
+
+The result can then be read with read_simple_configuration_:
+
+.. code-block:: console
+
+   $ ./examples/read_simple_configuration.py
+   Max distance gate           8
+   Max motion detection gate   8
+   Max static detection gate   8
+   Presence timeout            2
+   Detection thresholds:
+     Gate      0 |   1 |   2 |   3 |   4 |   5 |   6 |   7 |   8
+     Moving   28 |  21 |  13 |  17 |  11 |   8 |   7 |   7 |   7
+     Static   54 |  28 |   9 |   7 |   5 |   5 |   6 |   6 |   5
+
+
 Set distance resolution
 ^^^^^^^^^^^^^^^^^^^^^^^
 
