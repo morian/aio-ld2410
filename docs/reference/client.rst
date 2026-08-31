@@ -53,34 +53,62 @@ Configuration mode
    .. automethod:: configure
 
 
-Getters
-^^^^^^^
+Utilities
+^^^^^^^^^
+
+.. class:: LD2410
+   :no-index:
+
+   .. automethod:: get_firmware_version
+   .. automethod:: reset_to_factory
+   .. automethod:: restart_module
+   .. automethod:: set_baud_rate
+   .. automethod:: set_engineering_mode
+
+
+Gates
+^^^^^
+
+.. class:: LD2410
+   :no-index:
+
+   .. automethod:: get_parameters
+   .. automethod:: set_parameters
+   .. automethod:: set_gate_sensitivity
+
+   .. automethod:: get_distance_resolution
+   .. automethod:: set_distance_resolution
+
+
+Noise detection
+^^^^^^^^^^^^^^^
+
+These features are only available on ``LD2410B`` and ``LD2410C`` starting with
+firmware ``2.44`` and can be used for automatic calibration.
 
 .. class:: LD2410
    :no-index:
 
    .. automethod:: get_background_noise_detection_status
-   .. automethod:: get_bluetooth_address
-   .. automethod:: get_distance_resolution
-   .. automethod:: get_firmware_version
-   .. automethod:: get_light_control
-   .. automethod:: get_parameters
+   .. automethod:: start_background_noise_detection
 
 
-Setters
-^^^^^^^
+Bluetooth
+^^^^^^^^^
 
 .. class:: LD2410
    :no-index:
 
-   .. automethod:: reset_to_factory
-   .. automethod:: restart_module
-   .. automethod:: set_baud_rate
+   .. automethod:: get_bluetooth_address
    .. automethod:: set_bluetooth_mode
    .. automethod:: set_bluetooth_password
-   .. automethod:: set_distance_resolution
-   .. automethod:: set_engineering_mode
-   .. automethod:: set_gate_sensitivity
+
+
+Light sensor
+^^^^^^^^^^^^
+
+.. class:: LD2410
+   :no-index:
+
+   .. automethod:: get_light_control
    .. automethod:: set_light_control
-   .. automethod:: set_parameters
-   .. automethod:: start_background_noise_detection
