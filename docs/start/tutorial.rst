@@ -172,8 +172,8 @@ been introduced to automatically configure gate sensitivities with a background 
 detection command.
 
 This feature is implemented in the following methods:
-   * :meth:`LD2410.start_background_noise_detection`
-   * :meth:`LD2410.get_background_noise_detection_status`
+   * :meth:`LD2410.start_noise_detection`
+   * :meth:`LD2410.get_noise_detection_status`
 
 These methods can be used as shown in the following example:
 

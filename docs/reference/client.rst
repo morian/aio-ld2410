@@ -89,8 +89,8 @@ firmware ``2.44`` and can be used for automatic calibration.
 .. class:: LD2410
    :no-index:
 
-   .. automethod:: get_background_noise_detection_status
-   .. automethod:: start_background_noise_detection
+   .. automethod:: start_noise_detection
+   .. automethod:: get_noise_detection_status
 
 
 Bluetooth

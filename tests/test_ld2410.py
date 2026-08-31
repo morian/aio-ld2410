@@ -176,12 +176,12 @@ class TestLD2410:
     async def test_bgnoise_detection(self, device):
         """Check that we can start the background noice detection."""
         async with device.configure():
-            status = await device.get_background_noise_detection_status()
+            status = await device.get_noise_detection_status()
             assert status == BackgroundNoiseStatus.NOT_RUNNING
 
-            await device.start_background_noise_detection(10)
+            await device.start_noise_detection(10)
 
-            status = await device.get_background_noise_detection_status()
+            status = await device.get_noise_detection_status()
             assert status == BackgroundNoiseStatus.IN_PROGRESS
 
     @pytest.mark.parametrize('mode', [True, False])

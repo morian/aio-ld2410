@@ -377,7 +377,7 @@ class LD2410:
                 self._restarted = False
 
     @configuration
-    async def get_background_noise_detection_status(self) -> BackgroundNoiseStatus:
+    async def get_noise_detection_status(self) -> BackgroundNoiseStatus:
         """
         Get the background noise detection process status.
 
@@ -883,7 +883,7 @@ class LD2410:
         await self._request(CommandCode.GATE_SENSITIVITY_SET, data)
 
     @configuration
-    async def start_background_noise_detection(self, duration: int) -> None:
+    async def start_noise_detection(self, duration: int) -> None:
         """
         Start a background noise detection process.
 
@@ -899,7 +899,7 @@ class LD2410:
             duration: how long to wait before the process begins, in seconds
 
         See Also:
-            :meth:`get_background_noise_detection_status` to check the detection status.
+            :meth:`get_noise_detection_status` to check the detection status.
 
         Raises:
             CommandContextError: when called outside of the configuration context.

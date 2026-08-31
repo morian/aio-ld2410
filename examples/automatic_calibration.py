@@ -10,11 +10,11 @@ DURATION = 15
 async def main():
     async with LD2410('/dev/ttyUSB0') as device:
         async with device.configure():
-            status = await device.get_background_noise_detection_status()
+            status = await device.get_noise_detection_status()
             print(f'[>] Initial status: {status.name}')
 
             print('[+] Starting automatic calibration...')
-            await device.start_background_noise_detection(DURATION)
+            await device.start_noise_detection(DURATION)
 
             start = datetime.now(timezone.utc)
 
@@ -24,10 +24,10 @@ async def main():
 
             print(f'[2] Detecting background noise for {DURATION} seconds.')
 
-            status = await device.get_background_noise_detection_status()
+            status = await device.get_noise_detection_status()
             while status != BackgroundNoiseStatus.COMPLETED:
                 await asyncio.sleep(0.2)
-                status = await device.get_background_noise_detection_status()
+                status = await device.get_noise_detection_status()
                 print(f'[.] Process status: {status.name:15s}\r', end='')
             print()
 
