@@ -8,8 +8,17 @@ The format is based on `Keep a Changelog`_ and this project adheres to `Semantic
 .. _Semantic Versioning: https://semver.org/spec/v2.0.0.html
 
 
-1.1.0 (UNRELEASED)
+1.1.0 (2026-09-01)
 ==================
+
+``TargetStatus`` is no longer an ``IntFlag`` but is now an ``IntEnum``.
+This **breaking change** was necessary since this version introduces additional statuses
+linked to the calibration process, also called background noise detection, which adds
+three new statuses while this calibration is being run.
+
+Existing code should work fine for now, but you are **strongly** advised to check your
+usage and adapt. Please see the tutorial or example on how to read simple reports.
+
 
 Added
 -----
@@ -19,6 +28,11 @@ Added
 Fixed
 -----
 - Detect and raise an error when configuring an unsupported device or firmware
+
+Changed
+-------
+- ``TargetStatus`` is no longer an ``IntFlag`` and has become a ``IntEnum``
+- ``LD2410`` methods are now grouped by type in documentation
 
 
 1.0.2 (2025-10-18)

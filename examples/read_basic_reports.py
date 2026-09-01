@@ -6,7 +6,7 @@ from aio_ld2410 import LD2410, ReportBasicStatus, TargetStatus
 def format_basic_report(rep: ReportBasicStatus) -> str:
     items = []
 
-    if rep.target_status & TargetStatus.STATIC:
+    if rep.target_status in (TargetStatus.STATIC, TargetStatus.STATIC_MOVING):
         items.append(
             f'STATIC > dist {rep.static_distance:3d}'
             f' (energy {rep.static_energy:3d})'
@@ -14,7 +14,7 @@ def format_basic_report(rep: ReportBasicStatus) -> str:
     else:
         items.append(30 * ' ')
 
-    if rep.target_status & TargetStatus.MOVING:
+    if rep.target_status in (TargetStatus.MOVING, TargetStatus.STATIC_MOVING):
         items.append(
             f'MOVING > dist {rep.moving_distance:3d}'
             f' (energy {rep.moving_energy:3d})'

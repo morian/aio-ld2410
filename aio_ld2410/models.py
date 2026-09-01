@@ -174,7 +174,7 @@ class ReportBasicStatus:
 
     """
 
-    #: Detection status flags of the target (if any).
+    #: Detection status of the target (if any).
     target_status: TargetStatus
 
     #: When detected moving, at which distance (in centimeters).
