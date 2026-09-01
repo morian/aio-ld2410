@@ -896,7 +896,7 @@ class LD2410:
             with firmware version 2.44.
 
         Args:
-            duration: how long to wait before the process begins, in seconds
+            duration: how long the calibration process should last, in seconds
 
         See Also:
             :meth:`get_noise_detection_status` to check the detection status.
